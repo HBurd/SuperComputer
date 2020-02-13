@@ -37,7 +37,7 @@ architecture behavioural of alu_tb is
     process begin
         -- implement the clock
         clk <= '0'; wait for 10 us;
-        clk<='1'; wait for 10 us; 
+        clk <= '1'; wait for 10 us; 
     end process;
     
     process  begin
