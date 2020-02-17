@@ -47,7 +47,8 @@ architecture Behavioral of decode_tb is
         rega_idx: out unsigned(2 downto 0);
         regb_idx: out unsigned(2 downto 0);
         regc_idx: out unsigned(2 downto 0);
-        opcode: out opcode_t
+        opcode: out opcode_t;
+        shift_amt: out unsigned(3 downto 0)
     );
     end component;
     
@@ -57,6 +58,7 @@ architecture Behavioral of decode_tb is
     signal regc_idx: unsigned(2 downto 0);
     signal opcode: opcode_t;
     signal clk, rst: std_logic;
+    signal shift_amt: unsigned(3 downto 0);
 
     begin
 
@@ -67,43 +69,64 @@ architecture Behavioral of decode_tb is
         rega_idx => rega_idx,
         regb_idx => regb_idx,
         regc_idx => regc_idx,
-        opcode => opcode
+        opcode => opcode,
+        shift_amt => shift_amt
     );
     
     process begin
-        clk <= '0';
         -- test format A1
-        -- add r6 r3 r2
+        -- instruction: add r6 r3 r2
+        rst <= '0';
+        clk <= '0';
         instr <= "0000001" & "110" & "011" & "010";
         wait for 10 us;
-        
         clk <= '1';
         wait for 10 us;
-        
-        assert opcode = op_add;
-        assert rega_idx = 6 report "Bad rega index" severity ERROR;
-        assert regb_idx = 3 report "Bad regb index" severity ERROR;
-        assert regc_idx = 2 report "Bad regc index" severity ERROR;
-        
-        wait for 10 us;
-        
-        -- make sure instruction was latched
-        -- nop
-        instr <= "0000000000000000";
-        
-        wait for 10 us;
-        
         assert opcode = op_add report "Bad opcode" severity ERROR;
         assert rega_idx = 6 report "Bad rega index" severity ERROR;
         assert regb_idx = 3 report "Bad regb index" severity ERROR;
         assert regc_idx = 2 report "Bad regc index" severity ERROR;
         
+        -- test reset
+        wait for 10 us;
+        rst <= '1';
+        wait for 10 us;
+        rst <= '0';
+        assert (opcode = op_nop and rega_idx = 0 and regb_idx = 0 and regc_idx = 0 and shift_amt = 0) report "Did not reset" severity ERROR;
+
+        -- test formatl A2
+        -- instruction: shl r5 13
         wait for 10 us;
         clk <= '0';
-        
+        instr <= "0000101" & "101" & "00" & "1101";
         wait for 10 us;
         clk <= '1';
+        wait for 10 us;
+        assert opcode = op_shl report "Bad opcode" severity ERROR;
+        assert rega_idx = 5 report "Bad rega index" severity ERROR;
+        assert shift_amt = 13 report "Bad shift amount" severity ERROR;
         
+        -- test format A3
+        -- instruction: test r4
+        wait for 10 us;
+        clk <= '0';
+        instr <= "0000111" & "100" & "000000";
+        wait for 10 us;
+        clk <= '1';
+        wait for 10 us;
+        assert opcode = op_test report "Bad opcode" severity ERROR;
+        assert rega_idx = 4 report "Bad rega index" severity ERROR;
+        
+        -- make sure instruction was latched and test format A0
+        -- instruction: nop
+        wait for 10 us;
+        instr <= "0000000000000000";
+        wait for 10 us;
+        assert opcode /= op_nop report "Instruction didn't latch" severity ERROR;
+        wait for 10 us;
+        clk <= '0';
+        wait for 10 us;
+        clk <= '1';
         wait for 10 us;
         assert opcode = op_nop report "Bad opcode" severity ERROR;
         

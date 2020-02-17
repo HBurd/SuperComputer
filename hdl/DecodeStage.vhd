@@ -32,7 +32,8 @@ entity DecodeStage is
         rega_idx: out unsigned(2 downto 0);
         regb_idx: out unsigned(2 downto 0);
         regc_idx: out unsigned(2 downto 0);
-        opcode: out opcode_t
+        opcode: out opcode_t;
+        shift_amt: out unsigned(3 downto 0)
     );
 end DecodeStage;
 
@@ -88,6 +89,8 @@ opcode <= opcode_internal;
 rega_idx <= unsigned(instr_latch(8 downto 6)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_a3 or instr_fmt = fmt_b2 or instr_fmt = fmt_l1) else (others => '0');
 regb_idx <= unsigned(instr_latch(5 downto 3)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_l2) else (others => '0');
 regc_idx <= unsigned(instr_latch(2 downto 0)) when (instr_fmt = fmt_a1) else (others => '0');
+
+shift_amt <= unsigned(instr_latch(3 downto 0)) when (instr_fmt = fmt_a2) else (others => '0');
 
 process(clk, rst)
 begin
