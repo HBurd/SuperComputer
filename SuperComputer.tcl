@@ -142,6 +142,7 @@ set files [list \
  "[file normalize "$origin_dir/hdl/alu.vhd"]"\
  "[file normalize "$origin_dir/hdl/RegFile.vhd"]"\
  "[file normalize "$origin_dir/hdl/mmu.vhd"]"\
+ "[file normalize "$origin_dir/hdl/DecodeStage.vhd"]"\
 ]
 add_files -norecurse -fileset $obj $files
 
@@ -208,6 +209,7 @@ set files [list \
  "[file normalize "$origin_dir/sim/mmu_tb.vhd"]"\
  "[file normalize "$origin_dir/sim/RegFile_TB.vhd"]"\
  "[file normalize "$origin_dir/sim/alu_tb.vhd"]"\
+ "[file normalize "$origin_dir/sim/decode_tb.vhd"]"\
 ]
 add_files -norecurse -fileset $obj $files
 
