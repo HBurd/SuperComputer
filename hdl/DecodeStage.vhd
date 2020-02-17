@@ -47,7 +47,7 @@ signal instr_fmt: instr_fmt_t;
 
 begin
 
-opcode_unsigned <= unsigned(instr(15 downto 9));
+opcode_unsigned <= unsigned(instr_latch(15 downto 9));
 opcode_internal <=
     op_nop when opcode_unsigned = 0 else
     op_add when opcode_unsigned = 1 else

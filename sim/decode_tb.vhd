@@ -71,23 +71,41 @@ architecture Behavioral of decode_tb is
     );
     
     process begin
-        -- implement the clock
-        clk <= '0'; wait for 10 us;
-        clk <= '1'; wait for 10 us; 
-    end process;
-    
-    process begin
-        wait until (clk = '0' and clk'event);
-        
+        clk <= '0';
         -- test format A1
+        -- add r6 r3 r2
         instr <= "0000001" & "110" & "011" & "010";
-        wait until (clk = '1' and clk'event);
+        wait for 10 us;
         
-        wait until (clk = '0' and clk'event);
+        clk <= '1';
+        wait for 10 us;
+        
         assert opcode = op_add;
         assert rega_idx = 6 report "Bad rega index" severity ERROR;
         assert regb_idx = 3 report "Bad regb index" severity ERROR;
         assert regc_idx = 2 report "Bad regc index" severity ERROR;
+        
+        wait for 10 us;
+        
+        -- make sure instruction was latched
+        -- nop
+        instr <= "0000000000000000";
+        
+        wait for 10 us;
+        
+        assert opcode = op_add report "Bad opcode" severity ERROR;
+        assert rega_idx = 6 report "Bad rega index" severity ERROR;
+        assert regb_idx = 3 report "Bad regb index" severity ERROR;
+        assert regc_idx = 2 report "Bad regc index" severity ERROR;
+        
+        wait for 10 us;
+        clk <= '0';
+        
+        wait for 10 us;
+        clk <= '1';
+        
+        wait for 10 us;
+        assert opcode = op_nop report "Bad opcode" severity ERROR;
         
         wait;
     end process;
