@@ -23,14 +23,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+use work.common.all;
 
 entity top is
 Port (
@@ -48,8 +41,44 @@ architecture Behavioral of top is
         Port(clk, reset: in std_logic;
             hex3, hex2, hex1, hex0: in std_logic_vector(3 downto 0);
             an: out std_logic_vector(3 downto 0);
-            sseg: out std_logic_vector(6 downto 0)
-        );
+            sseg: out std_logic_vector(6 downto 0));
+    end component;
+    
+    component DecodeStage
+        Port (
+            clk, rst: in std_logic;
+            instr: in std_logic_vector(15 downto 0);
+            write_idx: out unsigned(2 downto 0);
+            read_idx_1: out unsigned(2 downto 0);
+            read_idx_2: out unsigned(2 downto 0);
+            opcode: out opcode_t;
+            shift_amt: out unsigned(3 downto 0));
+    end component;
+    
+    component Register_File
+        Port(
+            rst : in std_logic; 
+            clk: in std_logic;
+            --read signals
+            rd_index1: in std_logic_vector(2 downto 0);
+            rd_index2: in std_logic_vector(2 downto 0);
+            rd_data1: out std_logic_vector(15 downto 0);
+            rd_data2: out std_logic_vector(15 downto 0);
+            --write signals
+            wr_index: in std_logic_vector(2 downto 0);
+            wr_data: in std_logic_vector(15 downto 0);
+            wr_enable: in std_logic);
+    end component;
+    
+    component ExecuteStage
+        Port(
+            clk, rst: in std_logic;
+            opcode: in opcode_t;
+            shift_amt: in unsigned(3 downto 0);
+            read_data_1: in std_logic_vector(15 downto 0);
+            read_data_2: in std_logic_vector(15 downto 0);
+            write_idx: in unsigned(2 downto 0);
+            write_data: out std_logic_vector(15 downto 0));
     end component;
     
     signal count : unsigned(63 downto 0);
@@ -58,8 +87,56 @@ architecture Behavioral of top is
     signal dig1 : std_logic_vector(3 downto 0);
     signal dig2 : std_logic_vector(3 downto 0);
     signal dig3 : std_logic_vector(3 downto 0);
+    
+    signal fetched_instruction: std_logic_vector(15 downto 0);
+    
+    -- signals from decode stage
+    signal write_idx: unsigned(2 downto 0);
+    signal read_idx_1: unsigned(2 downto 0);
+    signal read_idx_2: unsigned(2 downto 0);
+    signal shift_amt: unsigned(3 downto 0);
+    signal decode_opcode: opcode_t;
+    signal read_data_1: std_logic_vector(15 downto 0);
+    signal read_data_2: std_logic_vector(15 downto 0);
+    
+    -- signals from execute stage
+    signal write_data: std_logic_vector(15 downto 0);
 
 begin
+
+decode_stage: DecodeStage port map (
+    clk => count(16),
+    rst => '0',
+    instr => fetched_instruction,
+    write_idx => write_idx,
+    read_idx_1 => read_idx_1,
+    read_idx_2 => read_idx_2,
+    opcode => decode_opcode,
+    shift_amt => shift_amt);
+    
+reg_file: Register_File port map (
+    rst => '0',
+    clk => count(16),
+    --read signals
+    rd_index1 => std_logic_vector(read_idx_1),
+    rd_index2 => std_logic_vector(read_idx_2),
+    rd_data1 => read_data_1,
+    rd_data2 => read_data_2,
+    --write signals
+    wr_index => std_logic_vector(write_idx),
+    wr_data => write_data,
+    wr_enable => '0');
+    
+execute_stage: ExecuteStage port map (
+    clk => count(16),
+    rst => '0',
+    opcode => decode_opcode,
+    shift_amt => shift_amt,
+    read_data_1 => read_data_1,
+    read_data_2 => read_data_2,
+    write_idx => write_idx,
+    write_data => write_data);
+    
 
 dig0 <= std_logic_vector(count(27 downto 24));
 dig1 <= std_logic_vector(count(31 downto 28));

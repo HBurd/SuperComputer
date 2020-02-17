@@ -43,9 +43,9 @@ architecture Behavioral of decode_tb is
     component DecodeStage is
     Port (
         instr: in std_logic_vector(15 downto 0);
-        rega_idx: out unsigned(2 downto 0);
-        regb_idx: out unsigned(2 downto 0);
-        regc_idx: out unsigned(2 downto 0);
+        write_idx: out unsigned(2 downto 0);
+        read_idx_1: out unsigned(2 downto 0);
+        read_idx_2: out unsigned(2 downto 0);
         opcode: out opcode_t;
         shift_amt: out unsigned(3 downto 0)
     );
@@ -62,9 +62,9 @@ architecture Behavioral of decode_tb is
 
     dut: DecodeStage port map(
         instr => instr,
-        rega_idx => rega_idx,
-        regb_idx => regb_idx,
-        regc_idx => regc_idx,
+        write_idx => rega_idx,
+        read_idx_1 => regb_idx,
+        read_idx_2 => regc_idx,
         opcode => opcode,
         shift_amt => shift_amt
     );
