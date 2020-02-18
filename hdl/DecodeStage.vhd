@@ -27,7 +27,6 @@ use work.common.all;
 
 entity DecodeStage is
     Port (
-        clk, rst: in std_logic;
         instr: in std_logic_vector(15 downto 0);
         rega_idx: out unsigned(2 downto 0);
         regb_idx: out unsigned(2 downto 0);
@@ -41,14 +40,13 @@ architecture Behavioral of DecodeStage is
 
 type instr_fmt_t is (fmt_a0, fmt_a1, fmt_a2, fmt_a3, fmt_b1, fmt_b2, fmt_l1, fmt_l2, fmt_invalid);
 
-signal instr_latch: std_logic_vector(15 downto 0);
 signal opcode_unsigned: unsigned(6 downto 0);
 signal opcode_internal: opcode_t;
 signal instr_fmt: instr_fmt_t;
 
 begin
 
-opcode_unsigned <= unsigned(instr_latch(15 downto 9));
+opcode_unsigned <= unsigned(instr(15 downto 9));
 opcode_internal <=
     op_nop when opcode_unsigned = 0 else
     op_add when opcode_unsigned = 1 else
@@ -86,20 +84,10 @@ instr_fmt <=
     fmt_invalid;
 
 opcode <= opcode_internal;
-rega_idx <= unsigned(instr_latch(8 downto 6)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_a3 or instr_fmt = fmt_b2 or instr_fmt = fmt_l1) else (others => '0');
-regb_idx <= unsigned(instr_latch(5 downto 3)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_l2) else (others => '0');
-regc_idx <= unsigned(instr_latch(2 downto 0)) when (instr_fmt = fmt_a1) else (others => '0');
+rega_idx <= unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_a3 or instr_fmt = fmt_b2 or instr_fmt = fmt_l1) else (others => '0');
+regb_idx <= unsigned(instr(5 downto 3)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_l2) else (others => '0');
+regc_idx <= unsigned(instr(2 downto 0)) when (instr_fmt = fmt_a1) else (others => '0');
 
-shift_amt <= unsigned(instr_latch(3 downto 0)) when (instr_fmt = fmt_a2) else (others => '0');
-
-process(clk, rst)
-begin
-    if rising_edge(clk) then
-        instr_latch <= instr;
-    end if;
-    if rising_edge(rst) then
-        instr_latch <= (others => '0');
-    end if;
-end process;
+shift_amt <= unsigned(instr(3 downto 0)) when (instr_fmt = fmt_a2) else (others => '0');
 
 end Behavioral;

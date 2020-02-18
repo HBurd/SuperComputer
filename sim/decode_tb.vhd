@@ -42,7 +42,6 @@ architecture Behavioral of decode_tb is
 
     component DecodeStage is
     Port (
-        clk, rst: in std_logic;
         instr: in std_logic_vector(15 downto 0);
         rega_idx: out unsigned(2 downto 0);
         regb_idx: out unsigned(2 downto 0);
@@ -57,14 +56,11 @@ architecture Behavioral of decode_tb is
     signal regb_idx: unsigned(2 downto 0);
     signal regc_idx: unsigned(2 downto 0);
     signal opcode: opcode_t;
-    signal clk, rst: std_logic;
     signal shift_amt: unsigned(3 downto 0);
 
     begin
 
     dut: DecodeStage port map(
-        clk => clk,
-        rst => rst,
         instr => instr,
         rega_idx => rega_idx,
         regb_idx => regb_idx,
@@ -76,31 +72,17 @@ architecture Behavioral of decode_tb is
     process begin
         -- test format A1
         -- instruction: add r6 r3 r2
-        rst <= '0';
-        clk <= '0';
         instr <= "0000001" & "110" & "011" & "010";
-        wait for 10 us;
-        clk <= '1';
         wait for 10 us;
         assert opcode = op_add report "Bad opcode" severity ERROR;
         assert rega_idx = 6 report "Bad rega index" severity ERROR;
         assert regb_idx = 3 report "Bad regb index" severity ERROR;
         assert regc_idx = 2 report "Bad regc index" severity ERROR;
         
-        -- test reset
-        wait for 10 us;
-        rst <= '1';
-        wait for 10 us;
-        rst <= '0';
-        assert (opcode = op_nop and rega_idx = 0 and regb_idx = 0 and regc_idx = 0 and shift_amt = 0) report "Did not reset" severity ERROR;
-
         -- test formatl A2
         -- instruction: shl r5 13
         wait for 10 us;
-        clk <= '0';
         instr <= "0000101" & "101" & "00" & "1101";
-        wait for 10 us;
-        clk <= '1';
         wait for 10 us;
         assert opcode = op_shl report "Bad opcode" severity ERROR;
         assert rega_idx = 5 report "Bad rega index" severity ERROR;
@@ -109,24 +91,15 @@ architecture Behavioral of decode_tb is
         -- test format A3
         -- instruction: test r4
         wait for 10 us;
-        clk <= '0';
         instr <= "0000111" & "100" & "000000";
-        wait for 10 us;
-        clk <= '1';
         wait for 10 us;
         assert opcode = op_test report "Bad opcode" severity ERROR;
         assert rega_idx = 4 report "Bad rega index" severity ERROR;
         
-        -- make sure instruction was latched and test format A0
+        -- test format A0
         -- instruction: nop
         wait for 10 us;
         instr <= "0000000000000000";
-        wait for 10 us;
-        assert opcode /= op_nop report "Instruction didn't latch" severity ERROR;
-        wait for 10 us;
-        clk <= '0';
-        wait for 10 us;
-        clk <= '1';
         wait for 10 us;
         assert opcode = op_nop report "Bad opcode" severity ERROR;
         
