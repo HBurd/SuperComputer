@@ -46,7 +46,6 @@ architecture Behavioral of top is
     
     component DecodeStage
         Port (
-            clk, rst: in std_logic;
             instr: in std_logic_vector(15 downto 0);
             write_idx: out unsigned(2 downto 0);
             read_idx_1: out unsigned(2 downto 0);
@@ -72,12 +71,7 @@ architecture Behavioral of top is
     
     component ExecuteStage
         Port(
-            clk, rst: in std_logic;
-            opcode: in opcode_t;
-            shift_amt: in unsigned(3 downto 0);
-            read_data_1: in std_logic_vector(15 downto 0);
-            read_data_2: in std_logic_vector(15 downto 0);
-            write_idx: in unsigned(2 downto 0);
+            input: in execute_input_t;
             write_data: out std_logic_vector(15 downto 0));
     end component;
     
@@ -87,6 +81,8 @@ architecture Behavioral of top is
     signal dig1 : std_logic_vector(3 downto 0);
     signal dig2 : std_logic_vector(3 downto 0);
     signal dig3 : std_logic_vector(3 downto 0);
+    
+    signal clk, rst: std_logic;
     
     signal fetched_instruction: std_logic_vector(15 downto 0);
     
@@ -99,14 +95,17 @@ architecture Behavioral of top is
     signal read_data_1: std_logic_vector(15 downto 0);
     signal read_data_2: std_logic_vector(15 downto 0);
     
+    signal execute_input: execute_input_t;
+    
     -- signals from execute stage
     signal write_data: std_logic_vector(15 downto 0);
 
 begin
 
+clk <= count(16);
+rst <= '0';
+
 decode_stage: DecodeStage port map (
-    clk => count(16),
-    rst => '0',
     instr => fetched_instruction,
     write_idx => write_idx,
     read_idx_1 => read_idx_1,
@@ -115,8 +114,8 @@ decode_stage: DecodeStage port map (
     shift_amt => shift_amt);
     
 reg_file: Register_File port map (
-    rst => '0',
-    clk => count(16),
+    rst => rst,
+    clk => clk,
     --read signals
     rd_index1 => std_logic_vector(read_idx_1),
     rd_index2 => std_logic_vector(read_idx_2),
@@ -127,14 +126,26 @@ reg_file: Register_File port map (
     wr_data => write_data,
     wr_enable => '0');
     
+process(clk, rst) begin
+    if rising_edge(rst) then
+        execute_input <= (
+            opcode => op_nop,
+            data_1 => (others => '0'),
+            data_2 => (others => '0'),
+            write_idx => (others => '0'),
+            shift_amt => (others => '0'));
+    elsif rising_edge(clk) then
+        execute_input <= (
+            opcode => decode_opcode,
+            data_1 => read_data_1,
+            data_2 => read_data_2,
+            write_idx => write_idx,
+            shift_amt => shift_amt);
+    end if;
+end process;
+    
 execute_stage: ExecuteStage port map (
-    clk => count(16),
-    rst => '0',
-    opcode => decode_opcode,
-    shift_amt => shift_amt,
-    read_data_1 => read_data_1,
-    read_data_2 => read_data_2,
-    write_idx => write_idx,
+    input => execute_input,
     write_data => write_data);
     
 

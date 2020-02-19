@@ -8,8 +8,6 @@ entity alu is
     Port ( in1 : in STD_LOGIC_VECTOR (15 downto 0);
            in2 : in STD_LOGIC_VECTOR (15 downto 0);
            alu_mode : in alu_mode_t;
-           clk : in STD_LOGIC;
-           rst : in STD_LOGIC;
            result : out STD_LOGIC_VECTOR (15 downto 0);
            z_flag : out STD_LOGIC;
            n_flag : out STD_LOGIC);
