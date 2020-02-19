@@ -13,17 +13,21 @@ entity mmu is
   Port (
   clk : in std_logic;
   reset : in std_logic;
-  error : out std_logic; -- something has gone wrong
+  err : out std_logic; -- something has gone wrong
   
   -- the instruction port:
   iaddr : in std_logic_vector (15 downto 0);
-  iouta : out std_logic_vector (15 downto 0);
+  iout : out std_logic_vector (15 downto 0);
   
   -- the data port
   daddr : in std_logic_vector (15 downto 0);
   dwen : in std_logic; -- write when 1, read when 0
-  din : in std_logic_vector (15 downto 0); -- used when web = 1
-  dout : out std_logic_vector (15 downto 0) -- only valid when web = 0
+  din : in std_logic_vector (15 downto 0); -- used when dwen = 1
+  dout : out std_logic_vector (15 downto 0); -- only valid when dwen = 0
+  
+  -- the I/O ports
+  io_in : in std_logic_vector (15 downto 0);
+  io_out : out std_logic_vector(15 downto 0)
   );
 end mmu;
 
@@ -46,6 +50,11 @@ signal ram_r_dout : std_logic_vector (15 downto 0);
 signal rounded_iaddr : std_logic_vector (15 downto 0);
 signal rounded_daddr : std_logic_vector (15 downto 0);
 
+-- I/O ports
+signal i_port_read : std_logic;
+signal o_port_write : std_logic;
+signal latched_oport_data : std_logic_vector(15 downto 0);
+
 -- error signals
 signal daddr_rom_read_error : std_logic;
 signal daddr_out_of_range_error : std_logic;
@@ -59,19 +68,45 @@ begin
     rounded_daddr(15 downto 1) <= daddr(15 downto 1);
     rounded_daddr(0) <= '0';
     
+    -- detect IO port accesses
+    i_port_read <= '1' when (daddr = x"FFF0" and dwen = '0') else '0';
+    o_port_write <= '1' when (daddr = x"FFF2" and dwen = '1') else '0';
+    
     -- check for problems
-    error <= daddr_rom_read_error or daddr_rom_read_error or daddr_out_of_range_error or iaddr_out_of_range_error;
+    err <= daddr_rom_read_error or daddr_rom_read_error or daddr_out_of_range_error or iaddr_out_of_range_error;
     daddr_rom_read_error <= '1' when (daddr(10) = '0') else '0'; -- data port trying to read from rom
-    daddr_out_of_range_error <= or_reduce(daddr(15 downto 11)); -- data port trying to read from illegal address
+    daddr_out_of_range_error <= '1' when (i_port_read = '0') and (o_port_write = '0') and (or_reduce(daddr(15 downto 11)) = '1') else '0'; -- data port trying to read from illegal address
     iaddr_out_of_range_error <= or_reduce(iaddr(15 downto 11)); -- instruction port tying to read from illegal address
     
     -- generate memory addresses from rounded CPU addresses
     ram_rw_addr <= rounded_daddr;
     
     ram_r_addr <= rounded_iaddr(15 downto 11) & '0' & rounded_iaddr(9 downto 0);
+    
     rom_addr <= rounded_iaddr(15 downto 11) & '0' & rounded_iaddr(9 downto 0);
     
-        
+    -- hook the data lines
+    
+    iout <= rom_dout when (iaddr(10) = '0') else ram_r_dout;
+    
+    dout <= io_in when (i_port_read = '1') else ram_rw_dout;
+    
+    io_out <= latched_oport_data;
+
+    ram_rw_din <= din;
+    ram_rw_wea(0) <= dwen;
+    
+    -- hold the data written to the output port
+    process (clk, reset) 
+    begin
+        if rising_edge(reset) then
+            latched_oport_data <= (others => '0');
+        elsif rising_edge(clk) then
+            if (o_port_write = '1') then
+                latched_oport_data <= din;
+            end if;
+        end if;  
+    end process;
 
     -- Both memories (and all their ports) use a the same clock and reset lines.
 
@@ -82,7 +117,7 @@ begin
         ADDR_WIDTH_A => 16,
         AUTO_SLEEP_TIME => 0,
         ECC_MODE => "no_ecc",
-        MEMORY_INIT_FILE => "none",
+        MEMORY_INIT_FILE => "rom.mem",
         MEMORY_INIT_PARAM => "0",
         MEMORY_OPTIMIZATION => "true",
         MEMORY_PRIMITIVE => "auto",
@@ -100,7 +135,6 @@ begin
         addra => rom_addr,
         douta => rom_dout,
         ena => '1',
-        
         
         -- Unused ECC and sleep mode stuff
         dbiterra => open,
