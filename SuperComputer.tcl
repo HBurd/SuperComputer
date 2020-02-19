@@ -448,4 +448,7 @@ set_property -name "steps.write_bitstream.args.verbose" -value "0" -objects $obj
 # set the current impl run
 current_run -implementation [get_runs impl_1]
 
+# load XPM libraries
+set_property XPM_LIBRARIES {XPM_MEMORY} [current_project]
+
 puts "INFO: Project created:$project_name"

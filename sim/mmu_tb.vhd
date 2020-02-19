@@ -7,15 +7,46 @@ use UNISIM.VComponents.all;
 library xpm;
 use xpm.vcomponents.all;
 
+use work.mmu;
+
 entity mmu_tb is end mmu_tb;
 
 
 architecture Behavioral of mmu_tb is
-    signal clk, reset : std_logic;
-    signal ram_rw_addr, ram_rw_din, ram_rw_dout : std_logic_vector(15 downto 0);
-    signal ram_rw_wea : std_logic_vector(0 downto 0);
-    signal ram_r_addr, ram_r_dout : std_logic_vector(15 downto 0);
+
+    component mmu port(
+         clk : in std_logic;
+         reset : in std_logic;
+         err : out std_logic;
+         iaddr : in std_logic_vector(15 downto 0);
+         iout : out std_logic_vector(15 downto 0);
+         daddr : in std_logic_vector(15 downto 0);
+         dwen : in std_logic;
+         din : in std_logic_vector(15 downto 0);
+         dout : out std_logic_vector (15 downto 0);
+         io_in : in std_logic_vector (15 downto 0);
+         io_out : out std_logic_vector(15 downto 0));
+    end component;
+
+    signal clk, reset, err : std_logic;
+    signal iaddr, iout : std_logic_vector(15 downto 0);
+    signal daddr, din, dout : std_logic_vector(15 downto 0);
+    signal dwen : std_logic;
+    signal io_in, io_out : std_logic_vector(15 downto 0);
 begin
+
+    dut: mmu port map (
+            clk => clk,
+            reset => reset,
+            err => err,
+            iaddr => iaddr,
+            iout => iout,
+            daddr => daddr,
+            din => din,
+            dwen => dwen,
+            dout => dout,
+            io_in => io_in,
+            io_out => io_out);
     
     process begin -- clock
         clk <= '0'; wait for 10 us;
@@ -23,87 +54,59 @@ begin
     end process;
     
     process begin
-        wait until (clk = '1' and clk'event);
-        wait until (clk = '1' and clk'event);
+        iaddr <= (others => '0');
+        daddr <= (others => '0');
+        din <= (others => '0');
+        io_in <= x"F0F0";
+        dwen <= '0';
+        reset <= '0';
+                
+        wait until rising_edge(clk);
+        reset <= '1';
+        wait until rising_edge(clk);
+        reset <= '0';
+        wait until rising_edge(clk);
         
-        ram_rw_addr <= x"0000";
-        ram_rw_din <= x"3210";
-        ram_rw_wea <= "1";
+        daddr <= x"0400";
+        din <= x"DEAD";
+        dwen <= '1';
         
-        wait until (clk = '1' and clk'event);
+        iaddr <= x"0000";
         
-        ram_rw_addr <= x"0003";
-        ram_rw_din <= x"abcd";
-        ram_rw_wea <= "1";
-        
-        wait until (clk = '1' and clk'event);
-        
-        ram_rw_wea <= "0";      
-        ram_rw_addr <= x"0000";
-        
-        wait until (clk = '1' and clk'event);
+        wait until rising_edge(clk);
+        daddr <= x"0401";
+        din <= x"BEEF";
+        iaddr <= x"0001";
+               
+        wait until falling_edge(clk);
 
-        ram_rw_wea <= "0";      
-        ram_rw_addr <= x"0001";
-        wait until (clk = '1' and clk'event);
+        assert dout = x"DEAD" report "RAM readback failed :(" severity ERROR;
         
-        ram_rw_addr <= x"0002";
+        wait until rising_edge(clk);
+        daddr <= x"0400";
+        dwen <= '0';
         
-        wait until (clk = '1' and clk'event);
+        iaddr <= x"0006";
         
-        ram_rw_addr <= x"0003";
+        wait until falling_edge(clk);
         
-        wait until (clk = '1' and clk'event);
+        assert dout = x"BEEF" report "RAM readback failed :(" severity ERROR;
         
-        ram_rw_addr <= x"0004";
+        wait until rising_edge(clk);
+        daddr <= x"FFF0";
+        
+        wait until falling_edge(clk);
+        assert dout = x"F0F0" report "Input port read failed :(" severity ERROR;
+        
+        wait until rising_edge(clk);
+        daddr <= x"FFF2";
+        din <= x"FAFA";
+        dwen <= '1';
         
         wait;    
     end process;
     
+    
 
-    -- xpm_memory_dpdistram: Dual Port Distributed RAM
-    -- Xilinx Parametrized Macro, version 2017.4
-    xpm_memory_dpdistram_inst : xpm_memory_dpdistram
-        generic map(
-            MEMORY_SIZE => 1024 * 8,
-            CLOCKING_MODE => "common_clock",
-            MEMORY_INIT_FILE => "none",
-            MEMORY_INIT_PARAM => "",
-            USE_MEM_INIT => 1,
-            MESSAGE_CONTROL => 0,
-            USE_EMBEDDED_CONSTRAINT => 0,
-            MEMORY_OPTIMIZATION => "true",
-            
-            WRITE_DATA_WIDTH_A => 16,
-            READ_DATA_WIDTH_A => 16,
-            BYTE_WRITE_WIDTH_A => 16,
-            ADDR_WIDTH_A => 16,
-            READ_RESET_VALUE_A => "0",
-            READ_LATENCY_A => 0,
-            
-            READ_DATA_WIDTH_B => 16,
-            ADDR_WIDTH_B => 16,
-            READ_RESET_VALUE_B => "0",
-            READ_LATENCY_B => 0
-        )
-        port map (
-            -- rw port
-            clka => clk,
-            rsta => reset,
-            ena => '1',
-            regcea => '1',
-            wea => ram_rw_wea,
-            addra => ram_rw_addr,
-            dina => ram_rw_din,
-            douta => ram_rw_dout,
-            
-            -- read-only port
-            clkb => clk,
-            rstb => reset,
-            enb => '1',
-            regceb => '1',
-            addrb => ram_r_addr,
-            doutb => ram_r_dout
-        );
 
 end Behavioral;
