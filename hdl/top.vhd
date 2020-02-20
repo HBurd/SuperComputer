@@ -104,6 +104,7 @@ begin
 
 clk <= count(16);
 rst <= '0';
+fetched_instruction <= (others => '0');
 
 decode_stage: DecodeStage port map (
     instr => fetched_instruction,
@@ -115,7 +116,7 @@ decode_stage: DecodeStage port map (
     
 reg_file: Register_File port map (
     rst => rst,
-    clk => clk,
+    clk => '0',
     --read signals
     rd_index1 => std_logic_vector(read_idx_1),
     rd_index2 => std_logic_vector(read_idx_2),
@@ -127,7 +128,7 @@ reg_file: Register_File port map (
     wr_enable => '0');
     
 process(clk, rst) begin
-    if rising_edge(rst) then
+    if rst = '1' then
         execute_input <= (
             opcode => op_nop,
             data_1 => (others => '0'),
@@ -149,12 +150,12 @@ execute_stage: ExecuteStage port map (
     write_data => write_data);
     
 
-dig0 <= std_logic_vector(count(27 downto 24));
-dig1 <= std_logic_vector(count(31 downto 28));
-dig2 <= std_logic_vector(count(35 downto 32));
-dig3 <= std_logic_vector(count(39 downto 36));
+dig0 <= std_logic_vector(write_data(3 downto 0));
+dig1 <= std_logic_vector(write_data(7 downto 4));
+dig2 <= std_logic_vector(write_data(11 downto 8));
+dig3 <= std_logic_vector(write_data(15 downto 12));
 
-D0: display_controller port map (count(16),
+D0: display_controller port map (clk,
                                  '0',
                                  dig3,
                                  dig2,
