@@ -33,8 +33,7 @@ Port (
     an : out std_logic_vector(3 downto 0);
     seg : out std_logic_vector(6 downto 0);
     io_in: in std_logic_vector(15 downto 0);
-    io_out: out std_logic_vector(15 downto 0);
-);
+    io_out: out std_logic_vector(15 downto 0));
 end top;
 
 architecture Behavioral of top is
@@ -76,7 +75,9 @@ architecture Behavioral of top is
     component ExecuteStage
         Port(
             input: in execute_latch_t;
-            write_data: out std_logic_vector(15 downto 0));
+            write_data: out std_logic_vector(15 downto 0);
+            N: out std_logic;
+            Z: out std_logic);
     end component;
 
     component MemoryStage
@@ -84,7 +85,7 @@ architecture Behavioral of top is
             input: in memory_latch_t;
             output_data: out std_logic_vector(15 downto 0);
             daddr: out std_logic_vector(15 downto 0);
-            dwen: out std_logic_vector(15 downto 0);
+            dwen: out std_logic;
             dwrite: out std_logic_vector(15 downto 0);
             dread: in std_logic_vector(15 downto 0));
     end component;
@@ -92,7 +93,8 @@ architecture Behavioral of top is
     component WriteBack
         Port (
             opcode: in opcode_t;
-            write_enable: out std_logic);
+            write_enable: out std_logic;
+            writeback_data: out std_logic_vector(15 downto 0));
     end component;
 
     component mmu
@@ -139,17 +141,20 @@ architecture Behavioral of top is
     -- signals from execute stage
     signal execute_latch: execute_latch_t;
     signal execute_output_data: std_logic_vector(15 downto 0);
+    signal execute_N, execute_Z: std_logic;
 
     -- signals from memory stage
     signal memory_latch: memory_latch_t;
     signal memory_output_data: std_logic_vector(15 downto 0);
     signal daddr: std_logic_vector(15 downto 0);
-    signal dwen: std_logic_vector(15 downto 0);
+    signal dwen: std_logic;
     signal dwrite: std_logic_vector(15 downto 0);
     signal dread: std_logic_vector(15 downto 0);
-        
+    
+    -- signals from writeback stage
     signal writeback_latch: writeback_latch_t;
     signal reg_write_enable: std_logic;
+    signal writeback_data: std_logic_vector(15 downto 0);
 
 begin
 
@@ -191,12 +196,14 @@ reg_file: Register_File port map (
     rd_data2 => read_data_2,
     --write signals
     wr_index => std_logic_vector(writeback_latch.write_idx),
-    wr_data => writeback_latch.write_data,
+    wr_data => writeback_data,
     wr_enable => reg_write_enable);
 
 execute_stage: ExecuteStage port map (
     input => execute_latch,
-    write_data => execute_output_data);
+    write_data => execute_output_data,
+    N => execute_N,
+    Z => execute_Z);
 
 memory_stage: MemoryStage port map (
     input => memory_latch,
@@ -224,12 +231,19 @@ process(clk, rst) begin
             imm_high => '0');
         memory_latch <= (
             opcode => op_nop,
-            src => (others => '0');
-            dest => (others => '0'));
+            src => (others => '0'),
+            dest => (others => '0'),
+            write_idx => (others => '0'),
+            N => '0',
+            Z => '0',
+            execute_output_data => (others => '0'));
         writeback_latch <= (
             opcode => op_nop,
             write_idx => (others => '0'),
-            write_data => (others => '0'));
+            execute_output_data => (others => '0'),
+            N => '0',
+            Z => '0',
+            memory_output_data => (others => '0'));
     elsif rising_edge(clk) then
         execute_latch <= (
             opcode => decode_opcode,
@@ -239,16 +253,21 @@ process(clk, rst) begin
             shift_amt => shift_amt,
             immediate => immediate,
             imm_high => imm_high);
-        writeback_latch <= (
         memory_latch <= (
             opcode => execute_latch.opcode,
             src => execute_latch.data_1,
             dest => execute_latch.data_2,
-            write_idx => execute_latch.write_idx);
+            write_idx => execute_latch.write_idx,
+            N => execute_N,
+            Z => execute_Z,
+            execute_output_data => execute_output_data);
         writeback_latch <= (
             opcode => memory_latch.opcode,
             write_idx => memory_latch.write_idx,
-            write_data => memory_output_data);
+            memory_output_data => memory_output_data,
+            execute_output_data => memory_latch.execute_output_data,
+            N => memory_latch.N,
+            Z => memory_latch.Z);
     end if;
 end process;
     
@@ -257,14 +276,14 @@ dig1 <= std_logic_vector(execute_output_data(7 downto 4));
 dig2 <= std_logic_vector(execute_output_data(11 downto 8));
 dig3 <= std_logic_vector(execute_output_data(15 downto 12));
 
-D0: display_controller port map (clk,
-                                 '0',
-                                 dig3,
-                                 dig2,
-                                 dig1,
-                                 dig0,
-                                 an,
-                                 seg);
+D0: display_controller port map (clk => clk,
+                                 reset => '0',
+                                 hex3 => dig3,
+                                 hex2 => dig2,
+                                 hex1 => dig1,
+                                 hex0 => dig0,
+                                 an => an,
+                                 sseg => seg);
 
 process (clk100MHz)
 begin
