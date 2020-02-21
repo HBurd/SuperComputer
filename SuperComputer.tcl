@@ -145,6 +145,7 @@ set files [list \
  "[file normalize "$origin_dir/hdl/DecodeStage.vhd"]"\
  "[file normalize "$origin_dir/hdl/ExecuteStage.vhd"]"\
  "[file normalize "$origin_dir/hdl/WriteBack.vhd"]"\
+ "[file normalize "$origin_dir/hdl/MemoryStage.vhd"]"\
 ]
 add_files -norecurse -fileset $obj $files
 
