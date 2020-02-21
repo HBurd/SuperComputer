@@ -11,13 +11,19 @@ package common is
         op_load, op_store, op_loadimm, op_mov,
         op_invalid);
         
-    type execute_input_t is record
+    type execute_latch_t is record
         opcode: opcode_t;
         data_1: std_logic_vector(15 downto 0);
         data_2: std_logic_vector(15 downto 0);
         write_idx: unsigned(2 downto 0);
         shift_amt: unsigned(3 downto 0);
-    end record execute_input_t;
+    end record execute_latch_t;
+    
+    type writeback_latch_t is record
+        opcode: opcode_t;
+        write_idx: unsigned(2 downto 0);
+        write_data: std_logic_vector(15 downto 0);
+    end record writeback_latch_t;
 
 end common;
 

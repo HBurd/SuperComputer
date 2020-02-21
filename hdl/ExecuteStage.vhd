@@ -6,7 +6,7 @@ use work.common.all;
 
 entity ExecuteStage is
     Port(
-        input: in execute_input_t;
+        input: in execute_latch_t;
         write_data: out std_logic_vector(15 downto 0));
 end ExecuteStage;
 

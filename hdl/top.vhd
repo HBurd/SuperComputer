@@ -71,8 +71,14 @@ architecture Behavioral of top is
     
     component ExecuteStage
         Port(
-            input: in execute_input_t;
+            input: in execute_latch_t;
             write_data: out std_logic_vector(15 downto 0));
+    end component;
+    
+    component WriteBack
+        Port (
+            opcode: in opcode_t;
+            write_enable: out std_logic);
     end component;
     
     signal count : unsigned(63 downto 0);
@@ -95,10 +101,14 @@ architecture Behavioral of top is
     signal read_data_1: std_logic_vector(15 downto 0);
     signal read_data_2: std_logic_vector(15 downto 0);
     
-    signal execute_input: execute_input_t;
+    signal execute_latch: execute_latch_t;
     
     -- signals from execute stage
     signal write_data: std_logic_vector(15 downto 0);
+    
+    signal writeback_latch: writeback_latch_t;
+    
+    signal reg_write_enable: std_logic;
 
 begin
 
@@ -113,43 +123,55 @@ decode_stage: DecodeStage port map (
     read_idx_2 => read_idx_2,
     opcode => decode_opcode,
     shift_amt => shift_amt);
-    
+
 reg_file: Register_File port map (
     rst => rst,
-    clk => '0',
+    clk => clk,
     --read signals
     rd_index1 => std_logic_vector(read_idx_1),
     rd_index2 => std_logic_vector(read_idx_2),
     rd_data1 => read_data_1,
     rd_data2 => read_data_2,
     --write signals
-    wr_index => std_logic_vector(write_idx),
-    wr_data => write_data,
-    wr_enable => '0');
+    wr_index => std_logic_vector(writeback_latch.write_idx),
+    wr_data => writeback_latch.write_data,
+    wr_enable => reg_write_enable);
+
+execute_stage: ExecuteStage port map (
+    input => execute_latch,
+    write_data => write_data);
     
+writeback_stage: WriteBack port map (
+    opcode => writeback_latch.opcode,
+    write_enable => reg_write_enable);
+    
+-- process for pipeline latches
 process(clk, rst) begin
     if rst = '1' then
-        execute_input <= (
+        execute_latch <= (
             opcode => op_nop,
             data_1 => (others => '0'),
             data_2 => (others => '0'),
             write_idx => (others => '0'),
             shift_amt => (others => '0'));
+        writeback_latch <= (
+            opcode => op_nop,
+            write_idx => (others => '0'),
+            write_data => (others => '0'));
     elsif rising_edge(clk) then
-        execute_input <= (
+        execute_latch <= (
             opcode => decode_opcode,
             data_1 => read_data_1,
             data_2 => read_data_2,
             write_idx => write_idx,
             shift_amt => shift_amt);
+        writeback_latch <= (
+            opcode => execute_latch.opcode,
+            write_idx => execute_latch.write_idx,
+            write_data => write_data);
     end if;
 end process;
     
-execute_stage: ExecuteStage port map (
-    input => execute_input,
-    write_data => write_data);
-    
-
 dig0 <= std_logic_vector(write_data(3 downto 0));
 dig1 <= std_logic_vector(write_data(7 downto 4));
 dig2 <= std_logic_vector(write_data(11 downto 8));
