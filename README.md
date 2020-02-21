@@ -44,7 +44,7 @@ make alu.wave
 ```
 
 This elaborates and runs `alu.vhd`, `alu_tb.vhd`, and any common library files.
-Waves are output to `alu.vhd`. We can view them by running
+Waves are output to `alu.wave`. We can view them by running
 
 ```
 gtkwave alu.wave

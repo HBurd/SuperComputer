@@ -6,9 +6,7 @@ STOPTIME=1ms
 	ghdl -a --workdir=$(WORKDIR) $^
 	ghdl -r --workdir=$(WORKDIR) $*_tb --stop-time=$(STOPTIME) --vcd=$@ --assert-level=warning
 
-% : %.vcd
-
-
 clean : 
 	rm -rf work
 	rm *.wave
+
