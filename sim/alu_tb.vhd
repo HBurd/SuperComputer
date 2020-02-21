@@ -8,8 +8,6 @@ entity alu_tb is end alu_tb;
 
 architecture behavioural of alu_tb is
     component alu port(
-        rst : in std_logic; 
-        clk: in std_logic; 
         alu_mode : in alu_mode_t;
         in1 : in std_logic_vector(15 downto 0);
         in2 : in std_logic_vector(15 downto 0);
@@ -25,8 +23,6 @@ architecture behavioural of alu_tb is
     begin
     
     dut: alu port map(
-        rst => rst,
-        clk => clk,
         alu_mode => alu_mode,
         in1 => in1,
         in2 => in2,
