@@ -17,6 +17,8 @@ package common is
         data_2: std_logic_vector(15 downto 0);
         write_idx: unsigned(2 downto 0);
         shift_amt: unsigned(3 downto 0);
+        immediate: std_logic_vector(7 downto 0);
+        imm_high: std_logic;
     end record execute_latch_t;
     
     type writeback_latch_t is record

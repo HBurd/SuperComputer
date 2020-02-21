@@ -53,6 +53,9 @@ begin
                 x"000" & std_logic_vector(input.shift_amt) when (input.opcode = op_shl or input.opcode = op_shr) else
                 (others => '0');
 
-    write_data <= alu_result when (input.opcode /= op_nop and input.opcode /= op_test) else (others => '0');
+    write_data <= alu_result when alu_mode /= alu_nop else
+        input.data_1(15 downto 8) & input.immediate when (input.opcode = op_loadimm and input.imm_high = '0') else
+        input.immediate & input.data_1(7 downto 0) when (input.opcode = op_loadimm and input.imm_high = '1') else
+        (others => '0');
 
 end Behavioral;

@@ -14,13 +14,18 @@ end WriteBack;
 architecture Behavioral of WriteBack is
 
 begin
-
     write_enable <= '1' when (opcode = op_add
                               or opcode = op_sub
                               or opcode = op_mul
                               or opcode = op_nand
                               or opcode = op_shl
-                              or opcode = op_shr)
+                              or opcode = op_shr
+                              or opcode = op_in
+                              or opcode = op_loadimm
+                              or opcode = op_br_sub
+                              or opcode = op_load
+                              or opcode = op_loadimm
+                              or opcode = op_mov)
         else '0';
 
 end Behavioral;

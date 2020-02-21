@@ -51,7 +51,9 @@ architecture Behavioral of top is
             read_idx_1: out unsigned(2 downto 0);
             read_idx_2: out unsigned(2 downto 0);
             opcode: out opcode_t;
-            shift_amt: out unsigned(3 downto 0));
+            shift_amt: out unsigned(3 downto 0);
+            immediate: out std_logic_vector(7 downto 0);
+            imm_high: out std_logic);
     end component;
     
     component Register_File
@@ -100,6 +102,8 @@ architecture Behavioral of top is
     signal decode_opcode: opcode_t;
     signal read_data_1: std_logic_vector(15 downto 0);
     signal read_data_2: std_logic_vector(15 downto 0);
+    signal immediate: std_logic_vector(7 downto 0);
+    signal imm_high: std_logic;
     
     signal execute_latch: execute_latch_t;
     
@@ -122,7 +126,9 @@ decode_stage: DecodeStage port map (
     read_idx_1 => read_idx_1,
     read_idx_2 => read_idx_2,
     opcode => decode_opcode,
-    shift_amt => shift_amt);
+    shift_amt => shift_amt,
+    immediate => immediate,
+    imm_high => imm_high);
 
 reg_file: Register_File port map (
     rst => rst,
@@ -153,7 +159,9 @@ process(clk, rst) begin
             data_1 => (others => '0'),
             data_2 => (others => '0'),
             write_idx => (others => '0'),
-            shift_amt => (others => '0'));
+            shift_amt => (others => '0'),
+            immediate => (others => '0'),
+            imm_high => '0');
         writeback_latch <= (
             opcode => op_nop,
             write_idx => (others => '0'),
@@ -164,7 +172,9 @@ process(clk, rst) begin
             data_1 => read_data_1,
             data_2 => read_data_2,
             write_idx => write_idx,
-            shift_amt => shift_amt);
+            shift_amt => shift_amt,
+            immediate => immediate,
+            imm_high => imm_high);
         writeback_latch <= (
             opcode => execute_latch.opcode,
             write_idx => execute_latch.write_idx,
