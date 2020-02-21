@@ -10,7 +10,7 @@ end pipeline_tb;
 
 architecture Behavioral of pipeline_tb is
 
-component DecodeStage
+    component DecodeStage
         Port (
             instr: in std_logic_vector(15 downto 0);
             write_idx: out unsigned(2 downto 0);
@@ -153,34 +153,18 @@ begin
         rst <= '0';
 
         wait until rising_edge(clk);
+        
         fetched_instruction <= "0010010" & "0" & x"07";
-
+        wait until rising_edge(clk);
+        fetched_instruction <= (others => '0'); -- nop
+        wait until rising_edge(clk);
         wait until rising_edge(clk);
 
-        assert execute_latch.opcode = op_loadimm;
-        assert execute_latch.immediate = x"07";
-        assert execute_latch.imm_high = '0';
-
-        wait until rising_edge(clk);
-
-        assert writeback_latch.opcode = op_loadimm;
-        assert writeback_latch.write_idx = "111";
-        assert writeback_latch.write_data = x"07";
-
-        wait until rising_edge(clk);
         fetched_instruction <= "0010010" & "1" & x"ff";
-
         wait until rising_edge(clk);
-
-        assert execute_latch.opcode = op_loadimm;
-        assert execute_latch.immediate = x"07";
-        assert execute_latch.imm_high = '0';
-
+        fetched_instruction <= (others => '0'); -- nop
         wait until rising_edge(clk);
-
-        assert writeback_latch.opcode = op_loadimm;
-        assert writeback_latch.write_idx = "111";
-        assert writeback_latch.write_data = x"07";
+        wait until rising_edge(clk);
 
         wait;
     end process;

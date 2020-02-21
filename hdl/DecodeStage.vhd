@@ -93,7 +93,7 @@ write_idx <= unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a1 or instr_fmt =
     else (others => '0');
 read_idx_1 <= unsigned(instr(5 downto 3)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_l2)
     else unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a4)
-    else "111" when instr_fmt = fmt_l1
+    else "111" when instr_fmt = fmt_l1  -- loadimm loads into r7
     else (others => '0');
 read_idx_2 <= unsigned(instr(2 downto 0)) when (instr_fmt = fmt_a1)
     else (others => '0');

@@ -213,6 +213,7 @@ set files [list \
  "[file normalize "$origin_dir/sim/alu_tb.vhd"]"\
  "[file normalize "$origin_dir/sim/decode_tb.vhd"]"\
  "[file normalize "$origin_dir/sim/execute_tb.vhd"]"\
+ "[file normalize "$origin_dir/sim/pipeline_tb.vhd"]"\
 ]
 add_files -norecurse -fileset $obj $files
 
