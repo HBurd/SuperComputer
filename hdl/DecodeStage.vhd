@@ -100,4 +100,7 @@ read_idx_2 <= unsigned(instr(2 downto 0)) when (instr_fmt = fmt_a1)
 
 shift_amt <= unsigned(instr(3 downto 0)) when (instr_fmt = fmt_a2) else (others => '0');
 
+immediate <= instr(7 downto 0);
+imm_high <= instr(8);
+
 end Behavioral;
