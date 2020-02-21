@@ -13,11 +13,11 @@ architecture Behavioral of execute_tb is
 
     component ExecuteStage is
         Port(
-            input: in execute_input_t;
+            input: in execute_latch_t;
             write_data: out std_logic_vector(15 downto 0));
     end component;
     
-    signal execute_input: execute_input_t;
+    signal execute_input: execute_latch_t;
     signal write_data: std_logic_vector(15 downto 0);
 
 begin
@@ -33,7 +33,10 @@ begin
             opcode => op_add,
             data_1 => x"1234",
             data_2 => x"0123",
-            others => (others => '0'));
+            write_idx => "000",
+            shift_amt => "0000",
+            immediate => x"00",
+            imm_high => '0');
             
         wait for 10 us;
         assert unsigned(write_data) = unsigned(execute_input.data_1) + unsigned(execute_input.data_2)
@@ -69,7 +72,7 @@ begin
         execute_input.shift_amt <= x"5";
         
         wait for 10 us;
-        assert unsigned(write_data) = resize(unsigned(execute_input.data_1) * x"0400", 16)
+        assert unsigned(write_data) = resize(unsigned(execute_input.data_1) * x"0020", 16)
             report "Bad output for shl instruction";
         
         wait;

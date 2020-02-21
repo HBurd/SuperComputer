@@ -14,53 +14,48 @@ entity alu is
 end alu;
 
 architecture Behavioral of alu is
-signal sum : signed(15 downto 0);
-signal difference: signed(15 downto 0);
-signal product: signed(31 downto 0);
-signal l_shifted: std_logic_vector(15 downto 0);
-signal r_shifted: std_logic_vector(15 downto 0);
-signal internal_result : STD_LOGIC_VECTOR (15 downto 0);
+
+    component BarrelShifter is
+        Port ( input : in STD_LOGIC_VECTOR (15 downto 0);
+               shift_amt : in STD_LOGIC_VECTOR (3 downto 0);
+               l_shifted : out STD_LOGIC_VECTOR (15 downto 0);
+               r_shifted : out STD_LOGIC_VECTOR (15 downto 0));
+    end component;
+
+    signal sum : signed(15 downto 0);
+    signal difference : signed(15 downto 0);
+    signal product : signed(31 downto 0);
+    signal internal_result : STD_LOGIC_VECTOR (15 downto 0);
+    signal l_shifted : std_logic_vector (15 downto 0);
+    signal r_shifted : std_logic_vector (15 downto 0);
+
 begin
 
-sum <= signed(in1) + signed(in2);
-difference <= signed(in1) - signed(in2);
-product <= signed(in1) * signed(in2);
-
---left_shift: process(in1, in2)
---begin
---    for i in 0 to 15 loop
---        if (std_logic_vector(to_unsigned(i, in2'length)) = in2) then
---            l_shifted(15 downto i) <= in1 ((15 - i) downto 0);
---            l_shifted((i-1) downto 0) <= (others => '0');
---        end if;
---    end loop;
---end process left_shift;
-
---right_shift: process(in1, in2)
---begin
---    for i in 0 to 15 loop
---        if (std_logic_vector(to_unsigned(i, in2'length)) = in2) then
---            l_shifted((15 - i) downto 0) <= in1 (15 downto i);
---            l_shifted((15 downto (15 - i)) <= (others => '0');
---        end if;
---    end loop;
---end process right_shift;
-
-
-internal_result <=
-    std_logic_vector(sum) when (alu_mode = alu_add) else
-    std_logic_vector(difference) when (alu_mode = alu_sub) else
-    std_logic_vector(product(15 downto 0)) when (alu_mode = alu_mul) else
-    in1 NAND in2 when (alu_mode = alu_nand) else
-    in1 when (alu_mode = alu_test)
-    else (others => '0');
+    sum <= signed(in1) + signed(in2);
+    difference <= signed(in1) - signed(in2);
+    product <= signed(in1) * signed(in2);
     
-z_flag <=
-    '1' when (internal_result = x"0000") else
-    '0';
+    shifter: BarrelShifter port map(
+        input => in1,
+        shift_amt => in2(3 downto 0),
+        l_shifted => l_shifted,
+        r_shifted => r_shifted);
     
-n_flag <= internal_result(15);
-
-result <= internal_result;
+    internal_result <= std_logic_vector(sum) when (alu_mode = alu_add)
+        else std_logic_vector(difference) when (alu_mode = alu_sub)
+        else std_logic_vector(product(15 downto 0)) when (alu_mode = alu_mul)
+        else in1 NAND in2 when (alu_mode = alu_nand)
+        else in1 when (alu_mode = alu_test)
+        else l_shifted when alu_mode = alu_shl
+        else r_shifted when alu_mode = alu_shr
+        else (others => '0');
+    
+    z_flag <=
+        '1' when (internal_result = x"0000") else
+        '0';
+    
+    n_flag <= internal_result(15);
+    
+    result <= internal_result;
 
 end Behavioral;

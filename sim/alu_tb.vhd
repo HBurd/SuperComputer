@@ -16,7 +16,7 @@ architecture behavioural of alu_tb is
         n_flag : out std_logic);
     end component; 
     
-    signal rst, clk, z_flag, n_flag : std_logic; 
+    signal z_flag, n_flag : std_logic; 
     signal alu_mode : alu_mode_t; 
     signal in1, in2, result : std_logic_vector(15 downto 0);
     
@@ -30,43 +30,66 @@ architecture behavioural of alu_tb is
         z_flag => z_flag,
         n_flag => n_flag        
      );
-    process begin
-        -- implement the clock
-        clk <= '0'; wait for 10 us;
-        clk <= '1'; wait for 10 us; 
-    end process;
     
     process  begin
-        wait until (clk = '0' and clk'event);
-        wait until (clk = '0' and clk'event);
         alu_mode <= alu_add;
         in1 <= x"0001";
         in2 <= x"0005";
-        wait until (clk = '1' and clk'event);
+        wait for 10 us;
         assert result = x"0006" report "Addition failed :(" severity ERROR;
         
-        wait until (clk = '0' and clk'event);
+        wait for 10 us;
         alu_mode <= alu_sub;
         in1 <= x"0001";
         in2 <= x"0005";
-        wait until (clk = '1' and clk'event);
+        wait for 10 us;
         assert result = std_logic_vector(to_signed(-4, 16)) report "Subtraction failed :(" severity ERROR;
         
-        wait until (clk = '0' and clk'event);
+        wait for 10 us;
         alu_mode <= alu_mul;
         in1 <= x"0002";
         in2 <= x"0005";        
-        wait until (clk = '1' and clk'event);
+        wait for 10 us;
         assert result = x"000A" report "Multiplication failed :(" severity ERROR;
         
-        wait until (clk = '0' and clk'event);
+        wait for 10 us;
         alu_mode <= alu_nand;
         in1 <= x"0001";
         in2 <= x"0005";       
-        wait until (clk = '1' and clk'event);
+        wait for 10 us;
         assert result = (std_logic_vector(to_unsigned(10#1#, 16)) NAND std_logic_vector(to_unsigned(5, 16))) report "NAND failed :(" severity ERROR;
 
-        wait until (clk = '0' and clk'event);
+        wait for 10 us;
+        alu_mode <= alu_shl;
+        in1 <= x"1234";
+        in2 <= x"0005";
+        wait for 10 us;
+        assert result = x"4680"
+            report "Bad output for shl by 5";
+            
+        wait for 10 us;
+        alu_mode <= alu_shl;
+        in1 <= x"1234";
+        in2 <= x"000A";
+        wait for 10 us;
+        assert result = x"D000"
+            report "Bad output for shl by A";
+            
+        wait for 10 us;
+        alu_mode <= alu_shr;
+        in1 <= x"DEAD";
+        in2 <= x"0005";
+        wait for 10 us;
+        assert result = x"06F5"
+            report "Bad output for shr by 5";
+            
+        wait for 10 us;
+        alu_mode <= alu_shr;
+        in1 <= x"DEAD";
+        in2 <= x"000A";
+        wait for 10 us;
+        assert result = x"0037"
+            report "Bad output for shr by A";
         
         wait;
     end process;
