@@ -52,9 +52,9 @@ architecture Behavioral of decode_tb is
     end component;
     
     signal instr: std_logic_vector(15 downto 0);
-    signal rega_idx: unsigned(2 downto 0);
-    signal regb_idx: unsigned(2 downto 0);
-    signal regc_idx: unsigned(2 downto 0);
+    signal write_idx: unsigned(2 downto 0);
+    signal read_idx_1: unsigned(2 downto 0);
+    signal read_idx_2: unsigned(2 downto 0);
     signal opcode: opcode_t;
     signal shift_amt: unsigned(3 downto 0);
 
@@ -62,9 +62,9 @@ architecture Behavioral of decode_tb is
 
     dut: DecodeStage port map(
         instr => instr,
-        write_idx => rega_idx,
-        read_idx_1 => regb_idx,
-        read_idx_2 => regc_idx,
+        write_idx => write_idx,
+        read_idx_1 => read_idx_1,
+        read_idx_2 => read_idx_2,
         opcode => opcode,
         shift_amt => shift_amt
     );
@@ -75,9 +75,9 @@ architecture Behavioral of decode_tb is
         instr <= "0000001" & "110" & "011" & "010";
         wait for 10 us;
         assert opcode = op_add report "Bad opcode" severity ERROR;
-        assert rega_idx = 6 report "Bad rega index" severity ERROR;
-        assert regb_idx = 3 report "Bad regb index" severity ERROR;
-        assert regc_idx = 2 report "Bad regc index" severity ERROR;
+        assert write_idx = 6 report "Bad rega index" severity ERROR;
+        assert read_idx_1 = 3 report "Bad regb index" severity ERROR;
+        assert read_idx_2 = 2 report "Bad regc index" severity ERROR;
         
         -- test formatl A2
         -- instruction: shl r5 13
@@ -85,7 +85,7 @@ architecture Behavioral of decode_tb is
         instr <= "0000101" & "101" & "00" & "1101";
         wait for 10 us;
         assert opcode = op_shl report "Bad opcode" severity ERROR;
-        assert rega_idx = 5 report "Bad rega index" severity ERROR;
+        assert write_idx = 5 report "Bad rega index" severity ERROR;
         assert shift_amt = 13 report "Bad shift amount" severity ERROR;
         
         -- test format A3
@@ -94,7 +94,7 @@ architecture Behavioral of decode_tb is
         instr <= "0000111" & "100" & "000000";
         wait for 10 us;
         assert opcode = op_test report "Bad opcode" severity ERROR;
-        assert rega_idx = 4 report "Bad rega index" severity ERROR;
+        assert read_idx_1 = 4 report "Bad rega index" severity ERROR;
         
         -- test format A0
         -- instruction: nop
