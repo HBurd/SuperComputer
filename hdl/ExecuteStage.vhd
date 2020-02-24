@@ -57,6 +57,7 @@ begin
     write_data <= alu_result when alu_mode /= alu_nop else
         input.data_1(15 downto 8) & input.immediate when (input.opcode = op_loadimm and input.imm_high = '0') else
         input.immediate & input.data_1(7 downto 0) when (input.opcode = op_loadimm and input.imm_high = '1') else
+        input.data_1 when (input.opcode = op_mov) else
         (others => '0');
 
 end Behavioral;
