@@ -99,7 +99,7 @@ begin
     -- hold the data written to the output port
     process (clk, rst) 
     begin
-        if rising_edge(rst) then
+        if (rst = '1') then
             latched_oport_data <= (others => '0');
         elsif rising_edge(clk) then
             if (o_port_write = '1') then
@@ -117,7 +117,7 @@ begin
         ADDR_WIDTH_A => 16,
         AUTO_SLEEP_TIME => 0,
         ECC_MODE => "no_ecc",
-        MEMORY_INIT_FILE => "rom.mem",
+        MEMORY_INIT_FILE => "../misc/format_a_test.mem",
         MEMORY_INIT_PARAM => "0",
         MEMORY_OPTIMIZATION => "true",
         MEMORY_PRIMITIVE => "auto",

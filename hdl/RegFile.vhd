@@ -24,7 +24,7 @@ type reg_array is array (integer range 0 to 7) of std_logic_vector(15 downto 0);
 --internals signals
 signal reg_file : reg_array; begin
 --write operation 
-process(clk)
+process(clk, rst)
 begin
     if rst = '1' then
         reg_file <= (others => (others => '0'));
