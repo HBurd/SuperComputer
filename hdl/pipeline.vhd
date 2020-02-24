@@ -79,7 +79,10 @@ architecture Behavioral of pipeline is
             write_enable: out std_logic;
             writeback_data: out std_logic_vector(15 downto 0);
             pc_overwrite: out std_logic;
-            pc_value: out std_logic_vector(15 downto 0));
+            pc_value: out std_logic_vector(15 downto 0);
+            N: out std_logic;
+            Z: out std_logic;
+            NZ_overwrite: out std_logic);
     end component;
     
     signal program_counter : std_logic_vector(15 downto 0);
@@ -110,6 +113,8 @@ architecture Behavioral of pipeline is
     signal writeback_data: std_logic_vector(15 downto 0);
     signal pc_overwrite: std_logic;
     signal pc_value: std_logic_vector(15 downto 0);
+    signal N, Z, NZ_overwrite, N_latched, Z_latched: std_logic;
+ 
 
 begin
 
@@ -155,7 +160,10 @@ writeback_stage: WriteBack port map (
     write_enable => reg_write_enable,
     writeback_data => writeback_data,
     pc_overwrite => pc_overwrite,
-    pc_value => pc_value);
+    pc_value => pc_value,
+    N => N,
+    Z => Z,
+    NZ_overwrite => NZ_overwrite);
 
 -- deal with the program counter
 
@@ -169,6 +177,19 @@ process(clk, rst) begin
             program_counter <= pc_value;
         else
             program_counter <= std_logic_vector(unsigned(program_counter) + x"0001");
+        end if;
+    end if;
+end process;
+
+-- store the N and Z flags
+process(clk, rst) begin
+    if rst = '1' then
+        N_latched <= '0';
+        Z_latched <= '0';
+    elsif rising_edge(clk) then
+        if (NZ_overwrite = '1') then
+            N_latched <= N;
+            Z_latched <= Z;
         end if;
     end if;
 end process;

@@ -11,7 +11,10 @@ entity WriteBack is
         write_enable: out std_logic;
         writeback_data: out std_logic_vector(15 downto 0);
         pc_overwrite: out std_logic;
-        pc_value: out std_logic_vector(15 downto 0));
+        pc_value: out std_logic_vector(15 downto 0);
+        N: out std_logic;
+        Z: out std_logic;
+        NZ_overwrite: out std_logic);
 end WriteBack;
 
 architecture Behavioral of WriteBack is
@@ -47,4 +50,8 @@ begin
           pc_overwrite <= '0';
           
           pc_value <= (others => '0'); -- use this for branch instructions
+          
+          N <= input.N;
+          Z <= input.Z;
+          NZ_overwrite <= '1' when (input.opcode = op_test) else '0';
 end Behavioral;
