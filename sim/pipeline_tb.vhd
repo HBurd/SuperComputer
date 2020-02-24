@@ -10,133 +10,58 @@ end pipeline_tb;
 
 architecture Behavioral of pipeline_tb is
 
-    component DecodeStage
-        Port (
-            instr: in std_logic_vector(15 downto 0);
-            write_idx: out unsigned(2 downto 0);
-            read_idx_1: out unsigned(2 downto 0);
-            read_idx_2: out unsigned(2 downto 0);
-            opcode: out opcode_t;
-            shift_amt: out unsigned(3 downto 0);
-            immediate: out std_logic_vector(7 downto 0);
-            imm_high: out std_logic);
+    component pipeline
+         Port (
+         rst : in std_logic;
+             clk : in std_logic;
+             iaddr : out std_logic_vector(15 downto 0);
+             iread : in std_logic_vector(15 downto 0);
+             daddr : out std_logic_vector(15 downto 0);
+             dwen : out std_logic;
+             dwrite : out std_logic_vector(15 downto 0);
+             dread : in std_logic_vector(15 downto 0)
+         );
     end component;
     
-    component Register_File
-        Port(
-            rst : in std_logic; 
-            clk: in std_logic;
-            --read signals
-            rd_index1: in std_logic_vector(2 downto 0);
-            rd_index2: in std_logic_vector(2 downto 0);
-            rd_data1: out std_logic_vector(15 downto 0);
-            rd_data2: out std_logic_vector(15 downto 0);
-            --write signals
-            wr_index: in std_logic_vector(2 downto 0);
-            wr_data: in std_logic_vector(15 downto 0);
-            wr_enable: in std_logic);
-    end component;
+    type word_array is array(0 to 50) of std_logic_vector(15 downto 0);
     
-    component ExecuteStage
-        Port(
-            input: in execute_latch_t;
-            write_data: out std_logic_vector(15 downto 0));
-    end component;
-    
-    component WriteBack
-        Port (
-            opcode: in opcode_t;
-            write_enable: out std_logic);
-    end component;
-    
+    signal instr_memory: word_array  := (
+        0 => (others => '0'), -- nop
+        1 => "0010010" & "0" & x"07", -- loadimm lower with 0x07
+        -- five nops to clear the pipeline
+        6 => "0010010" & "1" & x"01", -- loadimm upper with 0xff
+        -- five nops to clear the pipeline
+        11 => "0010011" & "000" & "111" & "000", -- mov R0, R7
+        -- five nops to clear the pipeline
+        16 => "0010010" & "0" & x"0A", -- loadimm lower with 0x0A
+        -- five nops to clear the pipeline
+        21 => "0010011" & "001" & "111" & "000", -- mov R1, R7
+        -- five nops to clear the pipeline
+        -- R0 = 0x0107, R1 = 0x010A
+        26 => "0000001" & "010" & "001" & "000", -- add R2, R1, R0 should be 0x0211
+        27 => "0000010" & "011" & "001" & "000", -- sub R3, R1, R0 should be 0x0003
+        28 => "0000011" & "100" & "001" & "000", -- mul R4, R1, R0 should be 0x1146 (overflowed)
+        29 => "0000100" & "101" & "001" & "000", -- nand R5, R1, R0 should be 0xFEFD
+        others => (others => '0') -- rest are nops
+    );
+
     signal clk, rst: std_logic;
         
-    signal fetched_instruction: std_logic_vector(15 downto 0);
-    
-    -- signals from decode stage
-    signal write_idx: unsigned(2 downto 0);
-    signal read_idx_1: unsigned(2 downto 0);
-    signal read_idx_2: unsigned(2 downto 0);
-    signal shift_amt: unsigned(3 downto 0);
-    signal decode_opcode: opcode_t;
-    signal read_data_1: std_logic_vector(15 downto 0);
-    signal read_data_2: std_logic_vector(15 downto 0);
-    signal immediate: std_logic_vector(7 downto 0);
-    signal imm_high: std_logic;
-    
-    signal execute_latch: execute_latch_t;
-    
-    -- signals from execute stage
-    signal write_data: std_logic_vector(15 downto 0);
-    
-    signal writeback_latch: writeback_latch_t;
-    
-    signal reg_write_enable: std_logic;
+    signal iaddr, iread, daddr, dwrite, dread : std_logic_vector(15 downto 0);
+    signal dwen: std_logic;
 
 begin
 
-    decode_stage: DecodeStage port map (
-        instr => fetched_instruction,
-        write_idx => write_idx,
-        read_idx_1 => read_idx_1,
-        read_idx_2 => read_idx_2,
-        opcode => decode_opcode,
-        shift_amt => shift_amt,
-        immediate => immediate,
-        imm_high => imm_high);
+    instr_pipeline: pipeline port map (
+    clk => clk,
+    rst => rst,
+    iaddr => iaddr,
+    iread => iread,
+    daddr => daddr,
+    dwen => dwen,
+    dwrite => dwrite,
+    dread => dread);
     
-    reg_file: Register_File port map (
-        rst => rst,
-        clk => clk,
-        --read signals
-        rd_index1 => std_logic_vector(read_idx_1),
-        rd_index2 => std_logic_vector(read_idx_2),
-        rd_data1 => read_data_1,
-        rd_data2 => read_data_2,
-        --write signals
-        wr_index => std_logic_vector(writeback_latch.write_idx),
-        wr_data => writeback_latch.write_data,
-        wr_enable => reg_write_enable);
-    
-    execute_stage: ExecuteStage port map (
-        input => execute_latch,
-        write_data => write_data);
-        
-    writeback_stage: WriteBack port map (
-        opcode => writeback_latch.opcode,
-        write_enable => reg_write_enable);
-
-    -- process for pipeline latches
-    process(clk, rst) begin
-        if rst = '1' then
-            execute_latch <= (
-                opcode => op_nop,
-                data_1 => (others => '0'),
-                data_2 => (others => '0'),
-                write_idx => (others => '0'),
-                shift_amt => (others => '0'),
-                immediate => (others => '0'),
-                imm_high => '0');
-            writeback_latch <= (
-                opcode => op_nop,
-                write_idx => (others => '0'),
-                write_data => (others => '0'));
-        elsif rising_edge(clk) then
-            execute_latch <= (
-                opcode => decode_opcode,
-                data_1 => read_data_1,
-                data_2 => read_data_2,
-                write_idx => write_idx,
-                shift_amt => shift_amt,
-                immediate => immediate,
-                imm_high => imm_high);
-            writeback_latch <= (
-                opcode => execute_latch.opcode,
-                write_idx => execute_latch.write_idx,
-                write_data => write_data);
-        end if;
-    end process;
-
     -- clock process
     process begin
         clk <= '0';
@@ -144,28 +69,15 @@ begin
         clk <= '1';
         wait for 10 us;
     end process;
+    
+    iread <= instr_memory(to_integer(unsigned(iaddr))) when (unsigned(iaddr) < word_array'length) else
+             (others => '0');
 
     process begin
         rst <= '1';
-        fetched_instruction <= (others => '0');
         wait until rising_edge(clk);
         wait until falling_edge(clk);
         rst <= '0';
-
-        wait until rising_edge(clk);
-        
-        fetched_instruction <= "0010010" & "0" & x"07";
-        wait until rising_edge(clk);
-        fetched_instruction <= (others => '0'); -- nop
-        wait until rising_edge(clk);
-        wait until rising_edge(clk);
-
-        fetched_instruction <= "0010010" & "1" & x"ff";
-        wait until rising_edge(clk);
-        fetched_instruction <= (others => '0'); -- nop
-        wait until rising_edge(clk);
-        wait until rising_edge(clk);
-
         wait;
     end process;
 
