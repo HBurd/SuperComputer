@@ -27,21 +27,23 @@ architecture Behavioral of pipeline_tb is
     
     signal instr_memory: word_array  := (
         0 => (others => '0'), -- nop
-        1 => "0010010" & "0" & x"07", -- loadimm lower with 0x07
+        1 => "0010010" & "0" & x"02", -- loadimm lower with 0x07
         -- five nops to clear the pipeline
-        6 => "0010010" & "1" & x"01", -- loadimm upper with 0xff
+        6 => "0010010" & "1" & x"05", -- loadimm upper with 0xff
         -- five nops to clear the pipeline
         11 => "0010011" & "000" & "111" & "000", -- mov R0, R7
         -- five nops to clear the pipeline
-        16 => "0010010" & "0" & x"0A", -- loadimm lower with 0x0A
+        16 => "0010010" & "1" & x"00", -- loadimm upper with 0x00
         -- five nops to clear the pipeline
         21 => "0010011" & "001" & "111" & "000", -- mov R1, R7
         -- five nops to clear the pipeline
-        -- R0 = 0x0107, R1 = 0x010A
-        26 => "0000001" & "010" & "001" & "000", -- add R2, R1, R0 should be 0x0211
-        27 => "0000010" & "011" & "001" & "000", -- sub R3, R1, R0 should be 0x0003
-        28 => "0000011" & "100" & "001" & "000", -- mul R4, R1, R0 should be 0x1146 (overflowed)
-        29 => "0000100" & "101" & "001" & "000", -- nand R5, R1, R0 should be 0xFEFD
+        -- R0 = 0x0502, R1 = 0x0002
+        26 => "0000001" & "010" & "001" & "000", -- add R2, R1, R0 should be 0x0504
+        27 => "0000010" & "011" & "001" & "000", -- sub R3, R1, R0 should be 0xFB00
+        28 => "0000011" & "100" & "001" & "000", -- mul R4, R1, R0 should be 0x0A04 (overflowed)
+        29 => "0000100" & "101" & "001" & "000", -- nand R5, R1, R0 should be 0xFFFD
+        30 => "0000101" & "001" & "00" & "0100", -- shl R1, 4 should be 0x0020
+        31 => "0000110" & "000" & "00" & "0010", -- shr R0, 2 should be 0x0140
         others => (others => '0') -- rest are nops
     );
 
