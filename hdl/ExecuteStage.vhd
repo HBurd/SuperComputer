@@ -7,7 +7,9 @@ use work.common.all;
 entity ExecuteStage is
     Port(
         input: in execute_latch_t;
-        write_data: out std_logic_vector(15 downto 0));
+        write_data: out std_logic_vector(15 downto 0);
+        N: out std_logic;
+        Z: out std_logic);
 end ExecuteStage;
 
 architecture Behavioral of ExecuteStage is
@@ -26,7 +28,6 @@ architecture Behavioral of ExecuteStage is
     signal alu_in_1: std_logic_vector(15 downto 0);
     signal alu_in_2: std_logic_vector(15 downto 0);
     signal alu_result: std_logic_vector(15 downto 0);
-    signal z_flag, n_flag: std_logic;
     
 begin
 
@@ -35,8 +36,8 @@ begin
         in1 => alu_in_1,
         in2 => alu_in_2,
         result => alu_result,
-        z_flag => z_flag,
-        n_flag => n_flag
+        z_flag => Z,
+        n_flag => N
     );
 
     alu_mode <= alu_add when input.opcode = op_add else
@@ -56,6 +57,7 @@ begin
     write_data <= alu_result when alu_mode /= alu_nop else
         input.data_1(15 downto 8) & input.immediate when (input.opcode = op_loadimm and input.imm_high = '0') else
         input.immediate & input.data_1(7 downto 0) when (input.opcode = op_loadimm and input.imm_high = '1') else
+        input.data_1 when (input.opcode = op_mov) else
         (others => '0');
 
 end Behavioral;

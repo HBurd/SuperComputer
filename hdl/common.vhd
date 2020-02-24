@@ -20,11 +20,25 @@ package common is
         immediate: std_logic_vector(7 downto 0);
         imm_high: std_logic;
     end record execute_latch_t;
+
+    type memory_latch_t is record
+        opcode: opcode_t;
+        src: std_logic_vector(15 downto 0);
+        dest: std_logic_vector(15 downto 0);
+        -- for later stages
+        write_idx: unsigned(2 downto 0);
+        N: std_logic;
+        Z: std_logic;
+        execute_output_data: std_logic_vector(15 downto 0);
+    end record memory_latch_t;
     
     type writeback_latch_t is record
         opcode: opcode_t;
         write_idx: unsigned(2 downto 0);
-        write_data: std_logic_vector(15 downto 0);
+        execute_output_data: std_logic_vector(15 downto 0);
+        N: std_logic;
+        Z: std_logic;
+        memory_output_data: std_logic_vector(15 downto 0);
     end record writeback_latch_t;
 
 end common;

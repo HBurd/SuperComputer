@@ -16,14 +16,14 @@ architecture Behavioral of mmu_tb is
 
     component mmu port(
          clk : in std_logic;
-         reset : in std_logic;
+         rst : in std_logic;
          err : out std_logic;
          iaddr : in std_logic_vector(15 downto 0);
          iout : out std_logic_vector(15 downto 0);
          daddr : in std_logic_vector(15 downto 0);
          dwen : in std_logic;
-         din : in std_logic_vector(15 downto 0);
-         dout : out std_logic_vector (15 downto 0);
+         dwrite : in std_logic_vector(15 downto 0);
+         dread : out std_logic_vector (15 downto 0);
          io_in : in std_logic_vector (15 downto 0);
          io_out : out std_logic_vector(15 downto 0));
     end component;
@@ -37,14 +37,14 @@ begin
 
     dut: mmu port map (
             clk => clk,
-            reset => reset,
+            rst => reset,
             err => err,
             iaddr => iaddr,
             iout => iout,
             daddr => daddr,
-            din => din,
+            dwrite => din,
             dwen => dwen,
-            dout => dout,
+            dread => dout,
             io_in => io_in,
             io_out => io_out);
     

@@ -12,7 +12,7 @@ use xpm.vcomponents.all;
 entity mmu is
   Port (
   clk : in std_logic;
-  reset : in std_logic;
+  rst : in std_logic;
   err : out std_logic; -- something has gone wrong
   
   -- the instruction port:
@@ -22,8 +22,8 @@ entity mmu is
   -- the data port
   daddr : in std_logic_vector (15 downto 0);
   dwen : in std_logic; -- write when 1, read when 0
-  din : in std_logic_vector (15 downto 0); -- used when dwen = 1
-  dout : out std_logic_vector (15 downto 0); -- only valid when dwen = 0
+  dwrite : in std_logic_vector (15 downto 0); -- used when dwen = 1
+  dread : out std_logic_vector (15 downto 0); -- only valid when dwen = 0
   
   -- the I/O ports
   io_in : in std_logic_vector (15 downto 0);
@@ -89,26 +89,26 @@ begin
     
     iout <= rom_dout when (iaddr(10) = '0') else ram_r_dout;
     
-    dout <= io_in when (i_port_read = '1') else ram_rw_dout;
+    dread <= io_in when (i_port_read = '1') else ram_rw_dout;
     
     io_out <= latched_oport_data;
 
-    ram_rw_din <= din;
+    ram_rw_din <= dwrite;
     ram_rw_wea(0) <= dwen;
     
     -- hold the data written to the output port
-    process (clk, reset) 
+    process (clk, rst) 
     begin
-        if rising_edge(reset) then
+        if rising_edge(rst) then
             latched_oport_data <= (others => '0');
         elsif rising_edge(clk) then
             if (o_port_write = '1') then
-                latched_oport_data <= din;
+                latched_oport_data <= dwrite;
             end if;
         end if;  
     end process;
 
-    -- Both memories (and all their ports) use a the same clock and reset lines.
+    -- Both memories (and all their ports) use a the same clock and rst lines.
 
     -- xpm_memory_sprom: Single Port ROM
     -- Xilinx Parametrized Macro, version 2017.4
@@ -131,7 +131,7 @@ begin
     )
     port map (
         clka => clk,
-        rsta => reset,
+        rsta => rst,
         addra => rom_addr,
         douta => rom_dout,
         ena => '1',
@@ -173,7 +173,7 @@ begin
         port map (
             -- rw port
             clka => clk,
-            rsta => reset,
+            rsta => rst,
             ena => '1',
             regcea => '1',
             wea => ram_rw_wea,
@@ -183,7 +183,7 @@ begin
             
             -- read-only port
             clkb => clk,
-            rstb => reset,
+            rstb => rst,
             enb => '1',
             regceb => '1',
             addrb => ram_r_addr,
