@@ -59,6 +59,7 @@ opcode_internal <=
     op_shl when opcode_unsigned = 5 else
     op_shr when opcode_unsigned = 6 else
     op_test when opcode_unsigned = 7 else
+    op_muh when opcode_unsigned = 8 else
     op_out when opcode_unsigned = 32 else
     op_in when opcode_unsigned = 33 else
     op_brr when opcode_unsigned = 64 else
@@ -77,7 +78,7 @@ opcode_internal <=
 
 instr_fmt <=
     fmt_a0 when (opcode_internal = op_nop or opcode_internal = op_return) else
-    fmt_a1 when (opcode_internal = op_add or opcode_internal = op_sub or opcode_internal = op_mul or opcode_internal = op_nand) else
+    fmt_a1 when (opcode_internal = op_add or opcode_internal = op_sub or opcode_internal = op_mul or opcode_internal = op_muh or opcode_internal = op_nand) else
     fmt_a2 when (opcode_internal = op_shl or opcode_internal = op_shr) else
     fmt_a3 when (opcode_internal = op_in) else
     fmt_a4 when (opcode_internal = op_test or opcode_internal = op_out) else

@@ -8,7 +8,7 @@ entity alu is
     Port ( in1 : in STD_LOGIC_VECTOR (15 downto 0);
            in2 : in STD_LOGIC_VECTOR (15 downto 0);
            alu_mode : in alu_mode_t;
-           result : out STD_LOGIC_VECTOR (15 downto 0);
+           result : out STD_LOGIC_VECTOR (31 downto 0);
            z_flag : out STD_LOGIC;
            n_flag : out STD_LOGIC);
 end alu;
@@ -25,7 +25,7 @@ architecture Behavioral of alu is
     signal sum : signed(15 downto 0);
     signal difference : signed(15 downto 0);
     signal product : signed(31 downto 0);
-    signal internal_result : STD_LOGIC_VECTOR (15 downto 0);
+    signal internal_result : STD_LOGIC_VECTOR (31 downto 0);
     signal l_shifted : std_logic_vector (15 downto 0);
     signal r_shifted : std_logic_vector (15 downto 0);
 
@@ -41,13 +41,13 @@ begin
         l_shifted => l_shifted,
         r_shifted => r_shifted);
     
-    internal_result <= std_logic_vector(sum) when (alu_mode = alu_add)
-        else std_logic_vector(difference) when (alu_mode = alu_sub)
-        else std_logic_vector(product(15 downto 0)) when (alu_mode = alu_mul)
-        else in1 NAND in2 when (alu_mode = alu_nand)
-        else in1 when (alu_mode = alu_test)
-        else l_shifted when alu_mode = alu_shl
-        else r_shifted when alu_mode = alu_shr
+    internal_result <= x"0000" & std_logic_vector(sum) when (alu_mode = alu_add)
+        else x"0000" & std_logic_vector(difference) when (alu_mode = alu_sub)
+        else std_logic_vector(product) when (alu_mode = alu_mul or alu_mode = alu_muh)
+        else x"0000" & (in1 NAND in2) when (alu_mode = alu_nand)
+        else x"0000" & in1 when (alu_mode = alu_test)
+        else x"0000" & l_shifted when alu_mode = alu_shl
+        else x"0000" & r_shifted when alu_mode = alu_shr
         else (others => '0');
     
     z_flag <=

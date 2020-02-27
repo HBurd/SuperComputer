@@ -117,7 +117,7 @@ begin
         ADDR_WIDTH_A => 16,
         AUTO_SLEEP_TIME => 0,
         ECC_MODE => "no_ecc",
-        MEMORY_INIT_FILE => "../misc/format_a_test.mem",
+        MEMORY_INIT_FILE => "format_a_test.mem",
         MEMORY_INIT_PARAM => "0",
         MEMORY_OPTIMIZATION => "true",
         MEMORY_PRIMITIVE => "auto",

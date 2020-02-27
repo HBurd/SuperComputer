@@ -27,9 +27,8 @@ use work.common.all;
 
 entity top is
 Port (
-    sw : in STD_LOGIC_VECTOR(15 downto 0);
-    CLK100MHZ : in STD_LOGIC;
-    LED : out STD_LOGIC_VECTOR(15 downto 0);
+    clk : in STD_LOGIC;
+    clk100MHz : in std_logic;
     an : out std_logic_vector(3 downto 0);
     seg : out std_logic_vector(6 downto 0);
     io_in: in std_logic_vector(15 downto 0);
@@ -64,7 +63,7 @@ architecture Behavioral of top is
             err: out std_logic;
             -- instruction port
             iaddr: in std_logic_vector(15 downto 0);
-            iout: out std_logic_vector(15 downto 9);
+            iout: out std_logic_vector(15 downto 0);
             -- data port
             daddr: in std_logic_vector(15 downto 0);
             dwen: in std_logic; -- write when 1, read when 0
@@ -85,15 +84,13 @@ architecture Behavioral of top is
     signal dig2 : std_logic_vector(3 downto 0);
     signal dig3 : std_logic_vector(3 downto 0);
     
-    signal clk, rst: std_logic;
+    signal rst: std_logic;
         
 
     
 
 
 begin
-
-clk <= count(16);
 rst <= '0';
 
 instr_pipeline: pipeline port map(
@@ -127,7 +124,7 @@ dig1 <= std_logic_vector(mem_iaddr(7 downto 4));
 dig2 <= std_logic_vector(mem_iaddr(11 downto 8));
 dig3 <= std_logic_vector(mem_iaddr(15 downto 12));
 
-D0: display_controller port map (clk => clk,
+D0: display_controller port map (clk => clk100MHz,
                                  reset => '0',
                                  hex3 => dig3,
                                  hex2 => dig2,
@@ -135,15 +132,5 @@ D0: display_controller port map (clk => clk,
                                  hex0 => dig0,
                                  an => an,
                                  sseg => seg);
-
-process (clk100MHz)
-begin
-    if rising_edge(CLK100MHZ) then
-          led <= STD_LOGIC_VECTOR(count(39 downto 24));
-          count <= count + 1;
-    end if;
-end process;
-
-
 
 end Behavioral;

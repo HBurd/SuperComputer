@@ -19,7 +19,7 @@ architecture Behavioral of ExecuteStage is
             in1 : in STD_LOGIC_VECTOR (15 downto 0);
             in2 : in STD_LOGIC_VECTOR (15 downto 0);
             alu_mode : in alu_mode_t;
-            result : out STD_LOGIC_VECTOR (15 downto 0);
+            result : out STD_LOGIC_VECTOR (31 downto 0);
             z_flag : out STD_LOGIC;
             n_flag : out STD_LOGIC);
     end component;
@@ -27,7 +27,7 @@ architecture Behavioral of ExecuteStage is
     signal alu_mode: alu_mode_t;
     signal alu_in_1: std_logic_vector(15 downto 0);
     signal alu_in_2: std_logic_vector(15 downto 0);
-    signal alu_result: std_logic_vector(15 downto 0);
+    signal alu_result: std_logic_vector(31 downto 0);
     
 begin
 
@@ -42,7 +42,7 @@ begin
 
     alu_mode <= alu_add when input.opcode = op_add else
                 alu_sub when input.opcode = op_sub else
-                alu_mul when input.opcode = op_mul else
+                alu_mul when input.opcode = op_mul or input.opcode = op_muh else
                 alu_nand when input.opcode = op_nand else
                 alu_shl when input.opcode = op_shl else
                 alu_shr when input.opcode = op_shr else
@@ -54,10 +54,10 @@ begin
                 x"000" & std_logic_vector(input.shift_amt) when (input.opcode = op_shl or input.opcode = op_shr) else
                 (others => '0');
 
-    write_data <= alu_result when alu_mode /= alu_nop else
+    write_data <= alu_result(31 downto 16) when input.opcode = op_muh else
         input.data_1(15 downto 8) & input.immediate when (input.opcode = op_loadimm and input.imm_high = '0') else
         input.immediate & input.data_1(7 downto 0) when (input.opcode = op_loadimm and input.imm_high = '1') else
         input.data_1 when (input.opcode = op_mov) else
-        (others => '0');
+        alu_result(15 downto 0);
 
 end Behavioral;

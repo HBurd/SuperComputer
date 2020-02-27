@@ -23,6 +23,7 @@ begin
         write_enable <= '1' when (input.opcode = op_add
                                 or input.opcode = op_sub
                                 or input.opcode = op_mul
+                                or input.opcode = op_muh
                                 or input.opcode = op_nand
                                 or input.opcode = op_shl
                                 or input.opcode = op_shr
@@ -37,6 +38,7 @@ begin
                                 input.opcode = op_add
                                 or input.opcode = op_sub
                                 or input.opcode = op_mul
+                                or input.opcode = op_muh
                                 or input.opcode = op_nand
                                 or input.opcode = op_shl
                                 or input.opcode = op_shr
