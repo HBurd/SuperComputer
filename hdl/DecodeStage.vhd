@@ -34,7 +34,11 @@ entity DecodeStage is
         opcode: out opcode_t;
         shift_amt: out unsigned(3 downto 0);
         immediate: out std_logic_vector(7 downto 0);
-        imm_high: out std_logic
+        imm_high: out std_logic;
+        mark_pending: out std_logic;
+        check_pending_idx: out unsigned(2 downto 0);
+        check_pending_result: in std_logic;
+        bubble: out std_logic
     );
 end DecodeStage;
 
@@ -89,6 +93,8 @@ instr_fmt <=
     fmt_invalid;
 
 opcode <= opcode_internal;
+mark_pending <= '1' when (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_a3 or instr_fmt = fmt_b2 or instr_fmt = fmt_l2 or instr_fmt = fmt_l1) 
+    else '0';
 write_idx <= unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_a3 or instr_fmt = fmt_b2 or instr_fmt = fmt_l2)
     else "111" when instr_fmt = fmt_l1
     else (others => '0');

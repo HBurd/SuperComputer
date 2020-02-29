@@ -42,7 +42,7 @@ architecture Behavioral of pipeline_tb is
         27 => "0000010" & "011" & "001" & "000", -- sub R3, R1, R0 should be 0xFB00
         28 => "0001000" & "100" & "001" & "000", -- mul R4, R1, R0 should be 0x4100 (overflowed)
         29 => "0000100" & "101" & "001" & "000", -- nand R5, R1, R0 should be 0xFFFD
-        30 => "0000101" & "001" & "00" & "0100", -- shl R1, 4 should be 0x0020
+        30 => "0000101" & "011" & "00" & "0001", -- shl R3, 1 should be 0xF600
         31 => "0000110" & "000" & "00" & "0010", -- shr R0, 2 should be 0x0140
         32 => "0000111" & "011" & "000000", -- test R3 should set N flag
         33 => "0000111" & "110" & "000000", -- test R6 should set Z flag
