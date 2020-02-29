@@ -62,15 +62,13 @@ signal iaddr_out_of_range_error : std_logic;
 
 begin
     -- round byte-scale CPU addresses to 16-bit word addresses
-    rounded_iaddr(15 downto 1) <= iaddr(15 downto 1);
-    rounded_iaddr(0) <= '0';
+    rounded_iaddr(15 downto 0) <= '0' & iaddr(15 downto 1);
     
-    rounded_daddr(15 downto 1) <= daddr(15 downto 1);
-    rounded_daddr(0) <= '0';
+    rounded_daddr(15 downto 0) <= '0' & daddr(15 downto 1);
     
     -- detect IO port accesses
     i_port_read <= '1' when (daddr = x"FFF0" and dwen = '0') else '0';
-    o_port_write <= '1' when (daddr = x"FFF2" and dwen = '1') else '0';
+    o_port_write <= '1' when (daddr = x"FFF2") else '0';
     
     -- check for problems
     err <= daddr_rom_read_error or daddr_rom_read_error or daddr_out_of_range_error or iaddr_out_of_range_error;
@@ -81,9 +79,9 @@ begin
     -- generate memory addresses from rounded CPU addresses
     ram_rw_addr <= rounded_daddr;
     
-    ram_r_addr <= rounded_iaddr(15 downto 11) & '0' & rounded_iaddr(9 downto 0);
+    ram_r_addr <= "000000" & rounded_iaddr(9 downto 0);
     
-    rom_addr <= rounded_iaddr(15 downto 11) & '0' & rounded_iaddr(9 downto 0);
+    rom_addr <= "000000" & rounded_iaddr(9 downto 0);
     
     -- hook the data lines
     
