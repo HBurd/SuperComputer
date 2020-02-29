@@ -176,7 +176,7 @@ process(clk, rst) begin
         if (pc_overwrite = '1') then
             program_counter <= pc_value;
         else
-            program_counter <= std_logic_vector(unsigned(program_counter) + x"0001");
+            program_counter <= std_logic_vector(unsigned(program_counter) + x"0002");
         end if;
     end if;
 end process;

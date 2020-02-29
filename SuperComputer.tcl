@@ -217,6 +217,7 @@ set files [list \
  "[file normalize "$origin_dir/sim/decode_tb.vhd"]"\
  "[file normalize "$origin_dir/sim/execute_tb.vhd"]"\
  "[file normalize "$origin_dir/sim/pipeline_tb.vhd"]"\
+ "[file normalize "$origin_dir/sim/cpu_tb.vhd"]"\
 ]
 add_files -norecurse -fileset $obj $files
 
@@ -239,7 +240,7 @@ set_property -name "file_type" -value "VHDL" -objects $file_obj
 
 # Set 'sim_1' fileset properties
 set obj [get_filesets sim_1]
-set_property -name "top" -value "mmu_tb" -objects $obj
+set_property -name "top" -value "cpu_tb" -objects $obj
 
 # Create 'synth_1' run (if not found)
 if {[string equal [get_runs -quiet synth_1] ""]} {

@@ -28,6 +28,7 @@ use work.common.all;
 entity top is
 Port (
     clk : in STD_LOGIC;
+    rst : in std_logic;
     clk100MHz : in std_logic;
     an : out std_logic_vector(3 downto 0);
     seg : out std_logic_vector(6 downto 0);
@@ -83,15 +84,8 @@ architecture Behavioral of top is
     signal dig1 : std_logic_vector(3 downto 0);
     signal dig2 : std_logic_vector(3 downto 0);
     signal dig3 : std_logic_vector(3 downto 0);
-    
-    signal rst: std_logic;
-        
-
-    
-
 
 begin
-rst <= '0';
 
 instr_pipeline: pipeline port map(
     clk => clk,
