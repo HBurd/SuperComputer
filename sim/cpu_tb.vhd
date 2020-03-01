@@ -38,6 +38,9 @@ end cpu_tb;
 architecture Behavioral of cpu_tb is
 
 component top
+    Generic(
+        RAM_INIT_FILE : string := "none";
+        ROM_INIT_FILE : string := "none");
     Port (
         clk : in STD_LOGIC;
         rst : in std_logic;
@@ -62,7 +65,12 @@ begin
         wait for 10 us;
     end process;
 
-    dut: top port map (
+    dut: top
+    generic map(
+    RAM_INIT_FILE => "none",
+    ROM_INIT_FILE => "bubble_insertion_test.mem"
+    ) 
+    port map (
         clk => clk,
         rst => rst,
         clk100MHz => '0',
