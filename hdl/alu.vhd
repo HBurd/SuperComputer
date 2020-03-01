@@ -51,7 +51,7 @@ begin
         else (others => '0');
     
     z_flag <=
-        '1' when (internal_result = x"0000") else
+        '1' when (internal_result = x"00000000") else
         '0';
     
     n_flag <= internal_result(15);

@@ -26,6 +26,9 @@ use IEEE.NUMERIC_STD.ALL;
 use work.common.all;
 
 entity top is
+Generic(
+    RAM_INIT_FILE : string := "none";
+    ROM_INIT_FILE : string := "none");
 Port (
     clk : in STD_LOGIC;
     rst : in std_logic;
@@ -58,6 +61,9 @@ architecture Behavioral of top is
     end component;
 
     component mmu
+        Generic(
+            RAM_INIT_FILE : string := "none";
+            ROM_INIT_FILE : string := "none");
         Port(
             clk: in std_logic;
             rst: in std_logic;
@@ -97,20 +103,24 @@ instr_pipeline: pipeline port map(
     dwrite => mem_dwrite,
     dread => mem_dread);
 
-memory_unit : mmu port map(
-    clk => clk,
-    rst => rst,
-    -- instruction port
-    iaddr => mem_iaddr,
-    iout => mem_iread,
-    -- data port
-    daddr => mem_daddr,
-    dwen => mem_dwen,
-    dwrite => mem_dwrite,
-    dread => mem_dread,
-    -- I/O ports
-    io_in => io_in,
-    io_out => io_out);
+memory_unit : mmu
+    generic map(
+        RAM_INIT_FILE => RAM_INIT_FILE,
+        ROM_INIT_FILE => ROM_INIT_FILE)
+    port map(
+        clk => clk,
+        rst => rst,
+        -- instruction port
+        iaddr => mem_iaddr,
+        iout => mem_iread,
+        -- data port
+        daddr => mem_daddr,
+        dwen => mem_dwen,
+        dwrite => mem_dwrite,
+        dread => mem_dread,
+        -- I/O ports
+        io_in => io_in,
+        io_out => io_out);
     
     
 dig0 <= std_logic_vector(mem_iaddr(3 downto 0));
