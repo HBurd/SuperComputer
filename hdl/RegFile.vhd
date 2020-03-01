@@ -19,8 +19,8 @@ port(
     --pending signals
     mark_pending_index: in std_logic_vector(2 downto 0);
     mark_pending: in std_logic;
-    check_pending_index: in std_logic_vector(2 downto 0);
-    check_pending_result: out std_logic
+    ridx1_pending: out std_logic;
+    ridx2_pending: out std_logic
  );
     
 end register_file;
@@ -57,6 +57,7 @@ rd_data1 <=	reg_file(to_integer(unsigned(rd_index1))).data;
 
 rd_data2 <=	reg_file(to_integer(unsigned(rd_index2))).data;
 
-check_pending_result <= reg_file(to_integer(unsigned(check_pending_index))).pending;
+ridx1_pending <= reg_file(to_integer(unsigned(rd_index1))).pending;
+ridx2_pending <= reg_file(to_integer(unsigned(rd_index2))).pending;
 
 end behavioural;

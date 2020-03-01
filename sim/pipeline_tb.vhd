@@ -26,6 +26,7 @@ architecture Behavioral of pipeline_tb is
     type word_array is array(0 to 50) of std_logic_vector(15 downto 0);
     
     signal instr_memory: word_array  := (
+        -- testing instruction implementation
         0 => (others => '0'), -- nop
         1 => "0010010" & "0" & x"40", -- loadimm lower with 0x04
         -- five nops to clear the pipeline
@@ -46,6 +47,10 @@ architecture Behavioral of pipeline_tb is
         31 => "0000110" & "000" & "00" & "0010", -- shr R0, 2 should be 0x0140
         32 => "0000111" & "011" & "000000", -- test R3 should set N flag
         33 => "0000111" & "110" & "000000", -- test R6 should set Z flag
+        
+        -- testing bubble insertion
+        34 => "0000110" & "000" & "00" & "0010", -- shr R0, 2 schedules a write to R0
+        35 => "0010001" & "001" & "000" & "000", -- store R1 R0 tries to read from RO ** hazard **
         others => (others => '0') -- rest are nops
     );
 
@@ -76,7 +81,7 @@ begin
         wait for 10 us;
     end process;
     
-    iread <= instr_memory(to_integer(unsigned(iaddr))) when (unsigned(iaddr) < word_array'length) else
+    iread <= instr_memory(to_integer(unsigned('0' & iaddr(15 downto 1)))) when (unsigned('0' & iaddr(15 downto 1)) < word_array'length) else
              (others => '0');
 
     process begin
