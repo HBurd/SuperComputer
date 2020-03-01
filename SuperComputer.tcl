@@ -148,6 +148,7 @@ set files [list \
  "[file normalize "$origin_dir/hdl/BarrelShifter.vhd"]"\
  "[file normalize "$origin_dir/hdl/MemoryStage.vhd"]"\
  "[file normalize "$origin_dir/hdl/pipeline.vhd"]"\
+ "[file normalize "$origin_dir/misc/format_a_test.mem"]"\
 ]
 add_files -norecurse -fileset $obj $files
 
