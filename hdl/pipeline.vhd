@@ -49,10 +49,13 @@ architecture Behavioral of pipeline is
             write_idx: out unsigned(2 downto 0);
             read_idx_1: out unsigned(2 downto 0);
             read_idx_2: out unsigned(2 downto 0);
+            read_data_1: in std_logic_vector(15 downto 0);
+            read_data_2: in std_logic_vector(15 downto 0);
             opcode: out opcode_t;
-            shift_amt: out unsigned(3 downto 0);
-            immediate: out std_logic_vector(7 downto 0);
-            imm_high: out std_logic);
+            data_1: out std_logic_vector(15 downto 0);
+            data_2: out std_logic_vector(15 downto 0);
+            imm_high: out std_logic
+        );
     end component;
     
     component ExecuteStage
@@ -91,11 +94,11 @@ architecture Behavioral of pipeline is
     signal write_idx: unsigned(2 downto 0);
     signal read_idx_1: unsigned(2 downto 0);
     signal read_idx_2: unsigned(2 downto 0);
-    signal shift_amt: unsigned(3 downto 0);
     signal decode_opcode: opcode_t;
+    signal decode_data_1: std_logic_vector(15 downto 0);
+    signal decode_data_2: std_logic_vector(15 downto 0);
     signal read_data_1: std_logic_vector(15 downto 0);
     signal read_data_2: std_logic_vector(15 downto 0);
-    signal immediate: std_logic_vector(7 downto 0);
     signal imm_high: std_logic;
     
     -- signals from execute stage
@@ -123,9 +126,11 @@ decode_stage: DecodeStage port map (
     write_idx => write_idx,
     read_idx_1 => read_idx_1,
     read_idx_2 => read_idx_2,
+    read_data_1 => read_data_1,
+    read_data_2 => read_data_2,
+    data_1 => decode_data_1,
+    data_2 => decode_data_2,
     opcode => decode_opcode,
-    shift_amt => shift_amt,
-    immediate => immediate,
     imm_high => imm_high);
 
 reg_file: Register_File port map (
@@ -202,8 +207,6 @@ process(clk, rst) begin
             data_1 => (others => '0'),
             data_2 => (others => '0'),
             write_idx => (others => '0'),
-            shift_amt => (others => '0'),
-            immediate => (others => '0'),
             imm_high => '0');
         memory_latch <= (
             opcode => op_nop,
@@ -223,11 +226,9 @@ process(clk, rst) begin
     elsif rising_edge(clk) then
         execute_latch <= (
             opcode => decode_opcode,
-            data_1 => read_data_1,
-            data_2 => read_data_2,
+            data_1 => decode_data_1,
+            data_2 => decode_data_2,
             write_idx => write_idx,
-            shift_amt => shift_amt,
-            immediate => immediate,
             imm_high => imm_high);
         memory_latch <= (
             opcode => execute_latch.opcode,

@@ -32,28 +32,29 @@ begin
                                 or input.opcode = op_load
                                 or input.opcode = op_loadimm
                                 or input.opcode = op_mov)
-            else '0';
-            
-         writeback_data <= input.execute_output_data when (
-                                input.opcode = op_add
-                                or input.opcode = op_sub
-                                or input.opcode = op_mul
-                                or input.opcode = op_muh
-                                or input.opcode = op_nand
-                                or input.opcode = op_shl
-                                or input.opcode = op_shr
-                                or input.opcode = op_loadimm
-                                or input.opcode = op_mov)
-                           else input.memory_output_data when (
+        else '0';
+
+        writeback_data <= input.execute_output_data when (
+                            input.opcode = op_add
+                         or input.opcode = op_sub
+                         or input.opcode = op_mul
+                         or input.opcode = op_muh
+                         or input.opcode = op_nand
+                         or input.opcode = op_shl
+                         or input.opcode = op_shr
+                         or input.opcode = op_loadimm
+                         or input.opcode = op_mov)
+            else input.memory_output_data when (
                                 input.opcode = op_in
-                                or input.opcode = op_load) 
-                           else (others => '0');
+                             or input.opcode = op_load) 
+            else (others => '0');
                            
-          pc_overwrite <= '0';
-          
-          pc_value <= (others => '0'); -- use this for branch instructions
-          
-          N <= input.N;
-          Z <= input.Z;
-          NZ_overwrite <= '1' when (input.opcode = op_test) else '0';
+        pc_overwrite <= '1' when input.opcode = op_brr or input.opcode = op_br
+            else '0';
+
+        pc_value <= input.execute_output_data; -- use this for branch instructions
+
+        N <= input.N;
+        Z <= input.Z;
+        NZ_overwrite <= '1' when (input.opcode = op_test) else '0';
 end Behavioral;
