@@ -79,6 +79,8 @@ architecture Behavioral of pipeline is
     component WriteBack
         Port (
             input: in writeback_latch_t;
+            N_current: in std_logic;
+            Z_current: in std_logic;
             write_enable: out std_logic;
             writeback_data: out std_logic_vector(15 downto 0);
             pc_overwrite: out std_logic;
@@ -162,6 +164,8 @@ memory_stage: MemoryStage port map (
 
 writeback_stage: WriteBack port map (
     input => writeback_latch,
+    N_current => N_latched,
+    Z_current => Z_latched,
     write_enable => reg_write_enable,
     writeback_data => writeback_data,
     pc_overwrite => pc_overwrite,
@@ -182,19 +186,6 @@ process(clk, rst) begin
             program_counter <= pc_value;
         else
             program_counter <= std_logic_vector(unsigned(program_counter) + x"0002");
-        end if;
-    end if;
-end process;
-
--- store the N and Z flags
-process(clk, rst) begin
-    if rst = '1' then
-        N_latched <= '0';
-        Z_latched <= '0';
-    elsif rising_edge(clk) then
-        if (NZ_overwrite = '1') then
-            N_latched <= N;
-            Z_latched <= Z;
         end if;
     end if;
 end process;

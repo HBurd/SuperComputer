@@ -47,10 +47,6 @@ begin
                           or input.opcode = op_br
                           or input.opcode = op_br_n
                           or input.opcode = op_br_z
-                          or input.opcode = op_br_sub
-                          or input.opcode = op_br
-                          or input.opcode = op_br_n
-                          or input.opcode = op_br_z
                           or input.opcode = op_br_sub else
                 alu_sub when input.opcode = op_sub else
                 alu_mul when input.opcode = op_mul or input.opcode = op_muh else
