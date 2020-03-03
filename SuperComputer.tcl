@@ -149,6 +149,7 @@ set files [list \
  "[file normalize "$origin_dir/hdl/MemoryStage.vhd"]"\
  "[file normalize "$origin_dir/hdl/pipeline.vhd"]"\
  "[file normalize "$origin_dir/misc/format_a_test.mem"]"\
+ "[file normalize "$origin_dir/misc/branch_test.mem"]"\
 ]
 add_files -norecurse -fileset $obj $files
 
@@ -219,6 +220,7 @@ set files [list \
  "[file normalize "$origin_dir/sim/execute_tb.vhd"]"\
  "[file normalize "$origin_dir/sim/pipeline_tb.vhd"]"\
  "[file normalize "$origin_dir/sim/cpu_tb.vhd"]"\
+ "[file normalize "$origin_dir/sim/branch_tb.vhd"]"\
 ]
 add_files -norecurse -fileset $obj $files
 

@@ -190,7 +190,7 @@ process(clk, rst) begin
     end if;
 end process;
     
--- process to update pipeline latches
+-- process to update latches on clock edge
 process(clk, rst) begin
     if rst = '1' then
         execute_latch <= (
@@ -214,6 +214,8 @@ process(clk, rst) begin
             N => '0',
             Z => '0',
             memory_output_data => (others => '0'));
+            N_latched <= '0';
+            Z_latched <= '0';
     elsif rising_edge(clk) then
         execute_latch <= (
             opcode => decode_opcode,
@@ -236,6 +238,10 @@ process(clk, rst) begin
             execute_output_data => memory_latch.execute_output_data,
             N => memory_latch.N,
             Z => memory_latch.Z);
+            if NZ_overwrite = '1' then
+                N_latched <= N;
+                Z_latched <= Z;
+            end if;
     end if;
 end process;
 
