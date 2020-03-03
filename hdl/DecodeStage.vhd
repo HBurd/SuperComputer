@@ -98,7 +98,7 @@ insert_bubble <= '1' when (
     (instr_fmt = fmt_l1 and (ridx1_pending = '1')) or
     (instr_fmt = fmt_a1 and ((ridx1_pending = '1') or (ridx2_pending = '1'))) or
     (instr_fmt = fmt_a2 and (ridx1_pending = '1')) or
-    (instr_fmt = fmt_a3 and (ridx1_pending = '1')) or
+    (instr_fmt = fmt_a4 and (ridx1_pending = '1')) or
     (instr_fmt = fmt_b2 and (ridx1_pending = '1')))
     else '0';
 bubble <= insert_bubble;
