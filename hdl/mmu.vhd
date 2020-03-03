@@ -10,6 +10,9 @@ use xpm.vcomponents.all;
 
 
 entity mmu is
+  Generic(
+    RAM_INIT_FILE : string := "none";
+    ROM_INIT_FILE : string := "none");
   Port (
   clk : in std_logic;
   rst : in std_logic;
@@ -115,7 +118,7 @@ begin
         ADDR_WIDTH_A => 16,
         AUTO_SLEEP_TIME => 0,
         ECC_MODE => "no_ecc",
-        MEMORY_INIT_FILE => "format_a_test.mem",
+        MEMORY_INIT_FILE => ROM_INIT_FILE,
         MEMORY_INIT_PARAM => "0",
         MEMORY_OPTIMIZATION => "true",
         MEMORY_PRIMITIVE => "auto",
@@ -149,7 +152,7 @@ begin
         generic map(
             MEMORY_SIZE => 1024 * 8,
             CLOCKING_MODE => "common_clock",
-            MEMORY_INIT_FILE => "none",
+            MEMORY_INIT_FILE => RAM_INIT_FILE,
             MEMORY_INIT_PARAM => "",
             USE_MEM_INIT => 1,
             MESSAGE_CONTROL => 0,

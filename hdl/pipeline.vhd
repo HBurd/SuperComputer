@@ -40,7 +40,11 @@ architecture Behavioral of pipeline is
             --write signals
             wr_index: in std_logic_vector(2 downto 0);
             wr_data: in std_logic_vector(15 downto 0);
-            wr_enable: in std_logic);
+            wr_enable: in std_logic;
+            mark_pending_index: in std_logic_vector(2 downto 0);
+            mark_pending: in std_logic;
+            ridx1_pending: out std_logic;
+            ridx2_pending: out std_logic);
     end component;
 
     component DecodeStage
@@ -52,7 +56,11 @@ architecture Behavioral of pipeline is
             opcode: out opcode_t;
             shift_amt: out unsigned(3 downto 0);
             immediate: out std_logic_vector(7 downto 0);
-            imm_high: out std_logic);
+            imm_high: out std_logic;
+            mark_pending: out std_logic;
+            ridx1_pending: in std_logic;
+            ridx2_pending: in std_logic;
+            bubble: out std_logic);
     end component;
     
     component ExecuteStage
@@ -97,6 +105,10 @@ architecture Behavioral of pipeline is
     signal read_data_2: std_logic_vector(15 downto 0);
     signal immediate: std_logic_vector(7 downto 0);
     signal imm_high: std_logic;
+    signal mark_pending: std_logic;
+    signal bubble: std_logic;
+    signal ridx1_pending: std_logic;
+    signal ridx2_pending: std_logic;
     
     -- signals from execute stage
     signal execute_latch: execute_latch_t;
@@ -126,7 +138,11 @@ decode_stage: DecodeStage port map (
     opcode => decode_opcode,
     shift_amt => shift_amt,
     immediate => immediate,
-    imm_high => imm_high);
+    imm_high => imm_high,
+    mark_pending => mark_pending,
+    ridx1_pending => ridx1_pending,
+    ridx2_pending => ridx2_pending,
+    bubble => bubble);
 
 reg_file: Register_File port map (
     rst => rst,
@@ -139,7 +155,11 @@ reg_file: Register_File port map (
     --write signals
     wr_index => std_logic_vector(writeback_latch.write_idx),
     wr_data => writeback_data,
-    wr_enable => reg_write_enable);
+    wr_enable => reg_write_enable,
+    mark_pending_index => std_logic_vector(write_idx),
+    mark_pending => mark_pending,
+    ridx1_pending => ridx1_pending,
+    ridx2_pending => ridx2_pending);
 
 execute_stage: ExecuteStage port map (
     input => execute_latch,
@@ -176,7 +196,11 @@ process(clk, rst) begin
         if (pc_overwrite = '1') then
             program_counter <= pc_value;
         else
-            program_counter <= std_logic_vector(unsigned(program_counter) + x"0002");
+            if (bubble = '1') then
+                program_counter <= program_counter;
+            else
+                program_counter <= std_logic_vector(unsigned(program_counter) + x"0002");
+            end if;
         end if;
     end if;
 end process;

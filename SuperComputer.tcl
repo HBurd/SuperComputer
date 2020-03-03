@@ -219,6 +219,7 @@ set files [list \
  "[file normalize "$origin_dir/sim/execute_tb.vhd"]"\
  "[file normalize "$origin_dir/sim/pipeline_tb.vhd"]"\
  "[file normalize "$origin_dir/sim/cpu_tb.vhd"]"\
+ "[file normalize "$origin_dir/misc/bubble_insertion_test.mem"]"\
 ]
 add_files -norecurse -fileset $obj $files
 

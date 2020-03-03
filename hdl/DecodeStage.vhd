@@ -34,7 +34,11 @@ entity DecodeStage is
         opcode: out opcode_t;
         shift_amt: out unsigned(3 downto 0);
         immediate: out std_logic_vector(7 downto 0);
-        imm_high: out std_logic
+        imm_high: out std_logic;
+        mark_pending: out std_logic;
+        ridx1_pending: in std_logic;
+        ridx2_pending: in std_logic;
+        bubble: out std_logic
     );
 end DecodeStage;
 
@@ -46,6 +50,7 @@ type instr_fmt_t is (fmt_a0, fmt_a1, fmt_a2, fmt_a3, fmt_a4, fmt_b1, fmt_b2, fmt
 signal opcode_unsigned: unsigned(6 downto 0);
 signal opcode_internal: opcode_t;
 signal instr_fmt: instr_fmt_t;
+signal insert_bubble: std_logic;
 
 begin
 
@@ -87,15 +92,31 @@ instr_fmt <=
     fmt_l1 when (opcode_internal = op_loadimm) else
     fmt_l2 when (opcode_internal = op_load or opcode_internal = op_store or opcode_internal = op_mov) else
     fmt_invalid;
+    
+insert_bubble <= '1' when (
+    (instr_fmt = fmt_l2 and ((ridx1_pending = '1') or (ridx2_pending = '1'))) or 
+    (instr_fmt = fmt_l1 and (ridx1_pending = '1')) or
+    (instr_fmt = fmt_a1 and ((ridx1_pending = '1') or (ridx2_pending = '1'))) or
+    (instr_fmt = fmt_a2 and (ridx1_pending = '1')) or
+    (instr_fmt = fmt_a4 and (ridx1_pending = '1')) or
+    (instr_fmt = fmt_b2 and (ridx1_pending = '1')))
+    else '0';
+bubble <= insert_bubble;
 
-opcode <= opcode_internal;
-write_idx <= unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_a3 or instr_fmt = fmt_b2 or instr_fmt = fmt_l2)
+opcode <= op_nop when insert_bubble = '1' else opcode_internal;
+
+mark_pending <= '1' when (insert_bubble = '0') and (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_a3 or instr_fmt = fmt_b2 or instr_fmt = fmt_l2 or instr_fmt = fmt_l1) 
+    else '0';
+    
+write_idx <= unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_b2 or instr_fmt = fmt_l2)
     else "111" when instr_fmt = fmt_l1
     else (others => '0');
-read_idx_1 <= unsigned(instr(5 downto 3)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_l2)
+    
+read_idx_1 <= unsigned(instr(5 downto 3)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_a3 or instr_fmt = fmt_l2)
     else unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a4 or instr_fmt = fmt_a2)
     else "111" when instr_fmt = fmt_l1  -- loadimm loads into r7
     else (others => '0');
+    
 read_idx_2 <= unsigned(instr(2 downto 0)) when (instr_fmt = fmt_a1)
     else unsigned(instr(8 downto 6)) when (instr_fmt = fmt_l2)
     else (others => '0');
