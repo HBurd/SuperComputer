@@ -40,7 +40,14 @@ begin
         n_flag => N
     );
 
-    alu_mode <= alu_add when input.opcode = op_add else
+    alu_mode <= alu_add when input.opcode = op_add
+                          or input.opcode = op_brr
+                          or input.opcode = op_brr_n
+                          or input.opcode = op_brr_z
+                          or input.opcode = op_br
+                          or input.opcode = op_br_n
+                          or input.opcode = op_br_z
+                          or input.opcode = op_br_sub else
                 alu_sub when input.opcode = op_sub else
                 alu_mul when input.opcode = op_mul or input.opcode = op_muh else
                 alu_nand when input.opcode = op_nand else
@@ -49,14 +56,12 @@ begin
                 alu_test when input.opcode = op_test else
                 alu_nop;
 
-    alu_in_1 <= input.data_1 when (input.opcode /= op_nop) else (others => '0');
-    alu_in_2 <= input.data_2 when (input.opcode /= op_nop and input.opcode /= op_shl and input.opcode /= op_shr) else
-                x"000" & std_logic_vector(input.shift_amt) when (input.opcode = op_shl or input.opcode = op_shr) else
-                (others => '0');
+    alu_in_1 <= input.data_1;
+    alu_in_2 <= input.data_2;
 
     write_data <= alu_result(31 downto 16) when input.opcode = op_muh else
-        input.data_1(15 downto 8) & input.immediate when (input.opcode = op_loadimm and input.imm_high = '0') else
-        input.immediate & input.data_1(7 downto 0) when (input.opcode = op_loadimm and input.imm_high = '1') else
+        input.data_1(15 downto 8) & input.data_2(7 downto 0) when (input.opcode = op_loadimm and input.imm_high = '0') else
+        input.data_2(7 downto 0) & input.data_1(7 downto 0) when (input.opcode = op_loadimm and input.imm_high = '1') else
         input.data_1 when (input.opcode = op_mov) else
         alu_result(15 downto 0);
 

@@ -31,9 +31,12 @@ entity DecodeStage is
         write_idx: out unsigned(2 downto 0);
         read_idx_1: out unsigned(2 downto 0);
         read_idx_2: out unsigned(2 downto 0);
+        read_data_1: in std_logic_vector(15 downto 0);
+        read_data_2: in std_logic_vector(15 downto 0);
+        pc: in unsigned(15 downto 0);
         opcode: out opcode_t;
-        shift_amt: out unsigned(3 downto 0);
-        immediate: out std_logic_vector(7 downto 0);
+        data_1: out std_logic_vector(15 downto 0);
+        data_2: out std_logic_vector(15 downto 0);
         imm_high: out std_logic;
         mark_pending: out std_logic;
         ridx1_pending: in std_logic;
@@ -102,28 +105,41 @@ insert_bubble <= '1' when (
     (instr_fmt = fmt_b2 and (ridx1_pending = '1')))
     else '0';
 bubble <= insert_bubble;
-
 opcode <= op_nop when insert_bubble = '1' else opcode_internal;
 
 mark_pending <= '1' when (insert_bubble = '0') and (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_a3 or instr_fmt = fmt_b2 or instr_fmt = fmt_l2 or instr_fmt = fmt_l1) 
     else '0';
     
-write_idx <= unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_b2 or instr_fmt = fmt_l2)
-    else "111" when instr_fmt = fmt_l1
-    else (others => '0');
-    
-read_idx_1 <= unsigned(instr(5 downto 3)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_a3 or instr_fmt = fmt_l2)
-    else unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a4 or instr_fmt = fmt_a2)
+write_idx <= unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_a3 or instr_fmt = fmt_l2)
     else "111" when instr_fmt = fmt_l1  -- loadimm loads into r7
+        or opcode_internal = op_br_sub  -- br.sub saves PC into r7
+    else (others => '0');
+read_idx_1 <= unsigned(instr(5 downto 3)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_l2)
+    else unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a4 or instr_fmt = fmt_a2 or instr_fmt = fmt_b2)
+    else "111" when instr_fmt = fmt_l1  -- loadimm loads into r7
+        or opcode_internal = op_return  -- return restores PC from r7
     else (others => '0');
     
 read_idx_2 <= unsigned(instr(2 downto 0)) when (instr_fmt = fmt_a1)
     else unsigned(instr(8 downto 6)) when (instr_fmt = fmt_l2)
     else (others => '0');
+    
+data_1 <= read_data_1 when instr_fmt = fmt_a1
+                        or instr_fmt = fmt_a2
+                        or instr_fmt = fmt_a4
+                        or instr_fmt = fmt_l1
+                        or instr_fmt = fmt_l2
+                        or instr_fmt = fmt_b2
+    else std_logic_vector(pc) when instr_fmt = fmt_b1
+    else (others => '0');
 
-shift_amt <= unsigned(instr(3 downto 0)) when (instr_fmt = fmt_a2) else (others => '0');
+data_2 <= read_data_2 when instr_fmt = fmt_a1 -- only format a1 reads 2 registers
+    else (15 downto 4 => '0') & instr(3 downto 0) when instr_fmt = fmt_a2
+    else (15 downto 10 => '0') & instr(8 downto 0) & "0" when instr_fmt = fmt_b1 -- shift to multiply by 2
+    else (15 downto 7 => '0') & instr(5 downto 0) & "0" when instr_fmt = fmt_b2
+    else (15 downto 8 => '0') & instr(7 downto 0) when instr_fmt = fmt_l1
+    else (others => '0');
 
-immediate <= instr(7 downto 0);
 imm_high <= instr(8);
 
 end Behavioral;

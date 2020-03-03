@@ -53,9 +53,12 @@ architecture Behavioral of pipeline is
             write_idx: out unsigned(2 downto 0);
             read_idx_1: out unsigned(2 downto 0);
             read_idx_2: out unsigned(2 downto 0);
+            read_data_1: in std_logic_vector(15 downto 0);
+            read_data_2: in std_logic_vector(15 downto 0);
+            pc: in unsigned(15 downto 0);
             opcode: out opcode_t;
-            shift_amt: out unsigned(3 downto 0);
-            immediate: out std_logic_vector(7 downto 0);
+            data_1: out std_logic_vector(15 downto 0);
+            data_2: out std_logic_vector(15 downto 0);
             imm_high: out std_logic;
             mark_pending: out std_logic;
             ridx1_pending: in std_logic;
@@ -84,6 +87,8 @@ architecture Behavioral of pipeline is
     component WriteBack
         Port (
             input: in writeback_latch_t;
+            N_current: in std_logic;
+            Z_current: in std_logic;
             write_enable: out std_logic;
             writeback_data: out std_logic_vector(15 downto 0);
             pc_overwrite: out std_logic;
@@ -99,11 +104,11 @@ architecture Behavioral of pipeline is
     signal write_idx: unsigned(2 downto 0);
     signal read_idx_1: unsigned(2 downto 0);
     signal read_idx_2: unsigned(2 downto 0);
-    signal shift_amt: unsigned(3 downto 0);
     signal decode_opcode: opcode_t;
+    signal decode_data_1: std_logic_vector(15 downto 0);
+    signal decode_data_2: std_logic_vector(15 downto 0);
     signal read_data_1: std_logic_vector(15 downto 0);
     signal read_data_2: std_logic_vector(15 downto 0);
-    signal immediate: std_logic_vector(7 downto 0);
     signal imm_high: std_logic;
     signal mark_pending: std_logic;
     signal bubble: std_logic;
@@ -135,9 +140,12 @@ decode_stage: DecodeStage port map (
     write_idx => write_idx,
     read_idx_1 => read_idx_1,
     read_idx_2 => read_idx_2,
+    read_data_1 => read_data_1,
+    read_data_2 => read_data_2,
+    pc => unsigned(pc_value),
+    data_1 => decode_data_1,
+    data_2 => decode_data_2,
     opcode => decode_opcode,
-    shift_amt => shift_amt,
-    immediate => immediate,
     imm_high => imm_high,
     mark_pending => mark_pending,
     ridx1_pending => ridx1_pending,
@@ -177,6 +185,8 @@ memory_stage: MemoryStage port map (
 
 writeback_stage: WriteBack port map (
     input => writeback_latch,
+    N_current => N_latched,
+    Z_current => Z_latched,
     write_enable => reg_write_enable,
     writeback_data => writeback_data,
     pc_overwrite => pc_overwrite,
@@ -204,21 +214,8 @@ process(clk, rst) begin
         end if;
     end if;
 end process;
-
--- store the N and Z flags
-process(clk, rst) begin
-    if rst = '1' then
-        N_latched <= '0';
-        Z_latched <= '0';
-    elsif rising_edge(clk) then
-        if (NZ_overwrite = '1') then
-            N_latched <= N;
-            Z_latched <= Z;
-        end if;
-    end if;
-end process;
     
--- process to update pipeline latches
+-- process to update latches on clock edge
 process(clk, rst) begin
     if rst = '1' then
         execute_latch <= (
@@ -226,8 +223,6 @@ process(clk, rst) begin
             data_1 => (others => '0'),
             data_2 => (others => '0'),
             write_idx => (others => '0'),
-            shift_amt => (others => '0'),
-            immediate => (others => '0'),
             imm_high => '0');
         memory_latch <= (
             opcode => op_nop,
@@ -244,14 +239,14 @@ process(clk, rst) begin
             N => '0',
             Z => '0',
             memory_output_data => (others => '0'));
+        N_latched <= '0';
+        Z_latched <= '0';
     elsif rising_edge(clk) then
         execute_latch <= (
             opcode => decode_opcode,
-            data_1 => read_data_1,
-            data_2 => read_data_2,
+            data_1 => decode_data_1,
+            data_2 => decode_data_2,
             write_idx => write_idx,
-            shift_amt => shift_amt,
-            immediate => immediate,
             imm_high => imm_high);
         memory_latch <= (
             opcode => execute_latch.opcode,
@@ -268,6 +263,10 @@ process(clk, rst) begin
             execute_output_data => memory_latch.execute_output_data,
             N => memory_latch.N,
             Z => memory_latch.Z);
+        if NZ_overwrite = '1' then
+            N_latched <= N;
+            Z_latched <= Z;
+        end if;
     end if;
 end process;
 
