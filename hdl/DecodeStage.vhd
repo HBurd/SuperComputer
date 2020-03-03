@@ -107,7 +107,7 @@ insert_bubble <= '1' when (
 bubble <= insert_bubble;
 opcode <= op_nop when insert_bubble = '1' else opcode_internal;
 
-mark_pending <= '1' when (insert_bubble = '0') and (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_a3 or instr_fmt = fmt_b2 or instr_fmt = fmt_l2 or instr_fmt = fmt_l1) 
+mark_pending <= '1' when (insert_bubble = '0') and (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_a3 or instr_fmt = fmt_l2 or instr_fmt = fmt_l1) 
     else '0';
     
 write_idx <= unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_a3 or instr_fmt = fmt_l2)
