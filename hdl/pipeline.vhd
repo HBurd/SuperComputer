@@ -51,6 +51,7 @@ architecture Behavioral of pipeline is
             read_idx_2: out unsigned(2 downto 0);
             read_data_1: in std_logic_vector(15 downto 0);
             read_data_2: in std_logic_vector(15 downto 0);
+            pc: in unsigned(15 downto 0);
             opcode: out opcode_t;
             data_1: out std_logic_vector(15 downto 0);
             data_2: out std_logic_vector(15 downto 0);
@@ -130,6 +131,7 @@ decode_stage: DecodeStage port map (
     read_idx_2 => read_idx_2,
     read_data_1 => read_data_1,
     read_data_2 => read_data_2,
+    pc => unsigned(pc_value),
     data_1 => decode_data_1,
     data_2 => decode_data_2,
     opcode => decode_opcode,
