@@ -30,7 +30,7 @@ begin
                                 or input.opcode = op_shl
                                 or input.opcode = op_shr
                                 or input.opcode = op_in
-                                or input.opcode = op_br_sub
+                                or input.opcode = op_br_sub  -- subroutine saves PC to R7
                                 or input.opcode = op_load
                                 or input.opcode = op_loadimm
                                 or input.opcode = op_mov)

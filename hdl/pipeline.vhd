@@ -142,7 +142,7 @@ decode_stage: DecodeStage port map (
     read_idx_2 => read_idx_2,
     read_data_1 => read_data_1,
     read_data_2 => read_data_2,
-    pc => unsigned(pc_value),
+    pc => unsigned(program_counter),
     data_1 => decode_data_1,
     data_2 => decode_data_2,
     opcode => decode_opcode,
