@@ -70,8 +70,13 @@ architecture Behavioral of pipeline is
         Port(
             input: in execute_latch_t;
             write_data: out std_logic_vector(15 downto 0);
-            N: out std_logic;
-            Z: out std_logic);
+            n: in std_logic;
+            z: in std_logic;
+            n_next: out std_logic;
+            z_next: out std_logic;
+            nz_update: out std_logic;
+            pc_overwrite: out std_logic;
+            pc_value: out std_logic_vector(15 downto 0));
     end component;
     
     component MemoryStage
@@ -87,15 +92,8 @@ architecture Behavioral of pipeline is
     component WriteBack
         Port (
             input: in writeback_latch_t;
-            N_current: in std_logic;
-            Z_current: in std_logic;
             write_enable: out std_logic;
-            writeback_data: out std_logic_vector(15 downto 0);
-            pc_overwrite: out std_logic;
-            pc_value: out std_logic_vector(15 downto 0);
-            N: out std_logic;
-            Z: out std_logic;
-            NZ_overwrite: out std_logic);
+            writeback_data: out std_logic_vector(15 downto 0));
     end component;
     
     signal program_counter : std_logic_vector(15 downto 0);
@@ -110,7 +108,7 @@ architecture Behavioral of pipeline is
     signal read_data_1: std_logic_vector(15 downto 0);
     signal read_data_2: std_logic_vector(15 downto 0);
     signal imm_high: std_logic;
-    signal mark_pending: std_logic;
+    signal mark_pending, mark_pending_gated: std_logic;
     signal bubble: std_logic;
     signal ridx1_pending: std_logic;
     signal ridx2_pending: std_logic;
@@ -118,8 +116,11 @@ architecture Behavioral of pipeline is
     -- signals from execute stage
     signal execute_latch: execute_latch_t;
     signal execute_output_data: std_logic_vector(15 downto 0);
-    signal execute_N, execute_Z: std_logic;
-
+    signal n, n_next, z, z_next, nz_update: std_logic;
+    signal pc_overwrite: std_logic;
+    signal pc_value: std_logic_vector(15 downto 0);
+    signal branch_mispredict: std_logic;
+    
     -- signals from memory stage
     signal memory_latch: memory_latch_t;
     signal memory_output_data: std_logic_vector(15 downto 0);
@@ -128,9 +129,7 @@ architecture Behavioral of pipeline is
     signal writeback_latch: writeback_latch_t;
     signal reg_write_enable: std_logic;
     signal writeback_data: std_logic_vector(15 downto 0);
-    signal pc_overwrite: std_logic;
-    signal pc_value: std_logic_vector(15 downto 0);
-    signal N, Z, NZ_overwrite, N_latched, Z_latched: std_logic;
+
  
 
 begin
@@ -165,15 +164,20 @@ reg_file: Register_File port map (
     wr_data => writeback_data,
     wr_enable => reg_write_enable,
     mark_pending_index => std_logic_vector(write_idx),
-    mark_pending => mark_pending,
+    mark_pending => mark_pending_gated,
     ridx1_pending => ridx1_pending,
     ridx2_pending => ridx2_pending);
 
 execute_stage: ExecuteStage port map (
     input => execute_latch,
     write_data => execute_output_data,
-    N => execute_N,
-    Z => execute_Z);
+    n => n,
+    z => z,
+    n_next => n_next,
+    z_next => z_next,
+    nz_update => nz_update,
+    pc_overwrite => pc_overwrite,
+    pc_value => pc_value);
 
 memory_stage: MemoryStage port map (
     input => memory_latch,
@@ -185,15 +189,8 @@ memory_stage: MemoryStage port map (
 
 writeback_stage: WriteBack port map (
     input => writeback_latch,
-    N_current => N_latched,
-    Z_current => Z_latched,
     write_enable => reg_write_enable,
-    writeback_data => writeback_data,
-    pc_overwrite => pc_overwrite,
-    pc_value => pc_value,
-    N => N,
-    Z => Z,
-    NZ_overwrite => NZ_overwrite);
+    writeback_data => writeback_data);
 
 -- deal with the program counter
 
@@ -214,9 +211,29 @@ process(clk, rst) begin
         end if;
     end if;
 end process;
+
+-- n and z flags from the execute stage
+process (clk, rst) begin
+    if rst = '1' then
+        n <= '0';
+        z <= '0';
+    elsif rising_edge(clk) then
+        if (nz_update = '1') then
+            n <= n_next;
+            z <= z_next;
+        end if;
+    end if;
+end process;
+
+-- if branch is mispredicted, we need to stop the execute latch from being loaded with the 
+-- wrong instruction and prevent the pending flags from being set wrong
+
+branch_mispredict <= pc_overwrite; -- assume branches aren't taken
+
+mark_pending_gated <= '1' when (branch_mispredict = '0') and (mark_pending = '1') else '0';
     
 -- process to update latches on clock edge
-process(clk, rst) begin
+process(clk, rst, pc_overwrite) begin
     if rst = '1' then
         execute_latch <= (
             opcode => op_nop,
@@ -229,44 +246,39 @@ process(clk, rst) begin
             src => (others => '0'),
             dest => (others => '0'),
             write_idx => (others => '0'),
-            N => '0',
-            Z => '0',
             execute_output_data => (others => '0'));
         writeback_latch <= (
             opcode => op_nop,
             write_idx => (others => '0'),
             execute_output_data => (others => '0'),
-            N => '0',
-            Z => '0',
             memory_output_data => (others => '0'));
-        N_latched <= '0';
-        Z_latched <= '0';
     elsif rising_edge(clk) then
-        execute_latch <= (
-            opcode => decode_opcode,
-            data_1 => decode_data_1,
-            data_2 => decode_data_2,
-            write_idx => write_idx,
-            imm_high => imm_high);
+        if (pc_overwrite = '1') then
+            execute_latch <= (
+                opcode => op_nop,
+                data_1 => (others => '0'),
+                data_2 => (others => '0'),
+                write_idx => (others => '0'),
+                imm_high => '0');
+        else
+            execute_latch <= (
+                opcode => decode_opcode,
+                data_1 => decode_data_1,
+                data_2 => decode_data_2,
+                write_idx => write_idx,
+                imm_high => imm_high);
+        end if;
         memory_latch <= (
             opcode => execute_latch.opcode,
             src => execute_latch.data_1,
             dest => execute_latch.data_2,
             write_idx => execute_latch.write_idx,
-            N => execute_N,
-            Z => execute_Z,
             execute_output_data => execute_output_data);
         writeback_latch <= (
             opcode => memory_latch.opcode,
             write_idx => memory_latch.write_idx,
             memory_output_data => memory_output_data,
-            execute_output_data => memory_latch.execute_output_data,
-            N => memory_latch.N,
-            Z => memory_latch.Z);
-        if NZ_overwrite = '1' then
-            N_latched <= N;
-            Z_latched <= Z;
-        end if;
+            execute_output_data => memory_latch.execute_output_data);
     end if;
 end process;
 
