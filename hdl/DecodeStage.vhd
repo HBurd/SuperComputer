@@ -48,7 +48,7 @@ end DecodeStage;
 architecture Behavioral of DecodeStage is
 
 -- fmt a4 isn't in the spec, but the out instruction effectively has its own format because 'ra' specifies a read index rather than a write index
-type instr_fmt_t is (fmt_a0, fmt_a1, fmt_a2, fmt_a3, fmt_a4, fmt_b1, fmt_b2, fmt_l1, fmt_l2, fmt_invalid);
+type instr_fmt_t is (fmt_a0, fmt_a1, fmt_a2, fmt_a3, fmt_a4, fmt_b1, fmt_b2, fmt_l1, fmt_l2, fmt_l3, fmt_invalid);
 
 signal opcode_unsigned: unsigned(6 downto 0);
 signal opcode_internal: opcode_t;
@@ -93,7 +93,8 @@ instr_fmt <=
     fmt_b1 when (opcode_internal = op_brr or opcode_internal = op_brr_n or opcode_internal = op_brr_z) else
     fmt_b2 when (opcode_internal = op_br or opcode_internal = op_br_n or opcode_internal = op_br_z or opcode_internal = op_br_sub) else
     fmt_l1 when (opcode_internal = op_loadimm) else
-    fmt_l2 when (opcode_internal = op_load or opcode_internal = op_store or opcode_internal = op_mov) else
+    fmt_l2 when (opcode_internal = op_load or opcode_internal = op_mov) else
+    fmt_l3 when (opcode_internal = op_store) else
     fmt_invalid;
     
 insert_bubble <= '1' when (
@@ -114,14 +115,14 @@ write_idx <= unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a1 or instr_fmt =
     else "111" when instr_fmt = fmt_l1  -- loadimm loads into r7
         or opcode_internal = op_br_sub  -- br.sub saves PC into r7
     else (others => '0');
-read_idx_1 <= unsigned(instr(5 downto 3)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_l2)
+read_idx_1 <= unsigned(instr(5 downto 3)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_l2 or instr_fmt = fmt_l3)
     else unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a4 or instr_fmt = fmt_a2 or instr_fmt = fmt_b2)
     else "111" when instr_fmt = fmt_l1  -- loadimm loads into r7
         or opcode_internal = op_return  -- return restores PC from r7
     else (others => '0');
     
 read_idx_2 <= unsigned(instr(2 downto 0)) when (instr_fmt = fmt_a1)
-    else unsigned(instr(8 downto 6)) when (instr_fmt = fmt_l2)
+    else unsigned(instr(8 downto 6)) when (instr_fmt = fmt_l3)
     else (others => '0');
     
 data_1 <= read_data_1 when instr_fmt = fmt_a1
@@ -129,11 +130,12 @@ data_1 <= read_data_1 when instr_fmt = fmt_a1
                         or instr_fmt = fmt_a4
                         or instr_fmt = fmt_l1
                         or instr_fmt = fmt_l2
+                        or instr_fmt = fmt_l3
                         or instr_fmt = fmt_b2
     else std_logic_vector(pc) when instr_fmt = fmt_b1
     else (others => '0');
 
-data_2 <= read_data_2 when instr_fmt = fmt_a1 -- only format a1 reads 2 registers
+data_2 <= read_data_2 when instr_fmt = fmt_a1 or instr_fmt = fmt_l3
     else (15 downto 4 => '0') & instr(3 downto 0) when instr_fmt = fmt_a2
     else (15 downto 10 => '0') & instr(8 downto 0) & "0" when instr_fmt = fmt_b1 -- shift to multiply by 2
     else (15 downto 7 => instr(5)) & instr(5 downto 0) & "0" when instr_fmt = fmt_b2 -- sign extend!!

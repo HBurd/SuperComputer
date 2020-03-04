@@ -60,9 +60,9 @@ begin
     -- clock process
     process begin
         clk <= '0';
-        wait for 10 us;
+        wait for 10 ns;
         clk <= '1';
-        wait for 10 us;
+        wait for 10 ns;
     end process;
 
     dut: top

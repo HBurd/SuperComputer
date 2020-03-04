@@ -18,14 +18,14 @@ end MemoryStage;
 architecture behavioral of MemoryStage is
 
 begin
-    -- we read from the source during a load
-    -- and write to the destination during a store
+    -- we read from the address contained in the source register
+    -- and write to the address contained in the destination register
     daddr <= input.src when (input.opcode = op_load) else
              x"FFF0" when (input.opcode = op_in) else
              x"FFF2" when (input.opcode = op_out) else
              input.dest;
     
-    -- we only ever write from the source register 
+    -- we only ever write the data from the source register
     dwrite <= input.src;
     
     dwen <= '1' when (input.opcode = op_store) else
