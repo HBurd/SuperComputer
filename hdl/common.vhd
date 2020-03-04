@@ -15,6 +15,7 @@ package common is
         opcode: opcode_t;
         data_1: std_logic_vector(15 downto 0);
         data_2: std_logic_vector(15 downto 0);
+        next_pc: unsigned(15 downto 0);
         write_idx: unsigned(2 downto 0);
         imm_high: std_logic;
     end record execute_latch_t;

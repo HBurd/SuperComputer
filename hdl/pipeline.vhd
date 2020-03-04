@@ -97,6 +97,7 @@ architecture Behavioral of pipeline is
     end component;
     
     signal program_counter : std_logic_vector(15 downto 0);
+    signal next_program_counter: std_logic_vector(15 downto 0);
     
     -- signals from decode stage
     signal write_idx: unsigned(2 downto 0);
@@ -196,6 +197,8 @@ writeback_stage: WriteBack port map (
 
 iaddr <= program_counter;
 
+next_program_counter <= std_logic_vector(unsigned(program_counter) + x"0002");
+
 process(clk, rst) begin
     if rst = '1' then
         program_counter <= (others => '0');
@@ -206,7 +209,7 @@ process(clk, rst) begin
             if (bubble = '1') then
                 program_counter <= program_counter;
             else
-                program_counter <= std_logic_vector(unsigned(program_counter) + x"0002");
+                program_counter <= next_program_counter;
             end if;
         end if;
     end if;
@@ -239,6 +242,7 @@ process(clk, rst, pc_overwrite) begin
             opcode => op_nop,
             data_1 => (others => '0'),
             data_2 => (others => '0'),
+            next_pc => x"0002",
             write_idx => (others => '0'),
             imm_high => '0');
         memory_latch <= (
@@ -258,6 +262,7 @@ process(clk, rst, pc_overwrite) begin
                 opcode => op_nop,
                 data_1 => (others => '0'),
                 data_2 => (others => '0'),
+                next_pc => unsigned(next_program_counter),
                 write_idx => (others => '0'),
                 imm_high => '0');
         else
@@ -265,6 +270,7 @@ process(clk, rst, pc_overwrite) begin
                 opcode => decode_opcode,
                 data_1 => decode_data_1,
                 data_2 => decode_data_2,
+                next_pc => unsigned(next_program_counter),
                 write_idx => write_idx,
                 imm_high => imm_high);
         end if;

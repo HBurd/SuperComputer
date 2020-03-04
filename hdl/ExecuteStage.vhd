@@ -67,7 +67,8 @@ begin
     write_data <= alu_result(31 downto 16) when input.opcode = op_muh else
         input.data_1(15 downto 8) & input.data_2(7 downto 0) when (input.opcode = op_loadimm and input.imm_high = '0') else
         input.data_2(7 downto 0) & input.data_1(7 downto 0) when (input.opcode = op_loadimm and input.imm_high = '1') else
-        input.data_1 when (input.opcode = op_mov or input.opcode = op_return) else
+        input.data_1 when (input.opcode = op_mov) else
+        std_logic_vector(input.next_pc) when input.opcode = op_br_sub else
         alu_result(15 downto 0);
         
     nz_update <= '1' when alu_mode = alu_test else '0';
@@ -77,6 +78,7 @@ begin
                     or ((input.opcode = op_brr_z or input.opcode = op_br_z) and z = '1')
                 else '0';
     
-    pc_value <= alu_result(15 downto 0);
+    pc_value <= input.data_1 when input.opcode = op_return else
+        alu_result(15 downto 0);
 
 end Behavioral;

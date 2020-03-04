@@ -38,7 +38,8 @@ begin
                          or input.opcode = op_shl
                          or input.opcode = op_shr
                          or input.opcode = op_loadimm
-                         or input.opcode = op_mov)
+                         or input.opcode = op_mov
+                         or input.opcode = op_br_sub)
             else input.memory_output_data when (
                                 input.opcode = op_in
                              or input.opcode = op_load) 

@@ -103,7 +103,8 @@ insert_bubble <= '1' when (
     (instr_fmt = fmt_a1 and ((ridx1_pending = '1') or (ridx2_pending = '1'))) or
     (instr_fmt = fmt_a2 and (ridx1_pending = '1')) or
     (instr_fmt = fmt_a4 and (ridx1_pending = '1')) or
-    (instr_fmt = fmt_b2 and (ridx1_pending = '1')))
+    (instr_fmt = fmt_b2 and (ridx1_pending = '1')) or
+    (opcode_internal = op_return and (ridx1_pending = '1')))
     else '0';
 bubble <= insert_bubble;
 opcode <= op_nop when insert_bubble = '1' else opcode_internal;
@@ -125,15 +126,8 @@ read_idx_2 <= unsigned(instr(2 downto 0)) when (instr_fmt = fmt_a1)
     else unsigned(instr(8 downto 6)) when (instr_fmt = fmt_l3)
     else (others => '0');
     
-data_1 <= read_data_1 when instr_fmt = fmt_a1
-                        or instr_fmt = fmt_a2
-                        or instr_fmt = fmt_a4
-                        or instr_fmt = fmt_l1
-                        or instr_fmt = fmt_l2
-                        or instr_fmt = fmt_l3
-                        or instr_fmt = fmt_b2
-    else std_logic_vector(pc) when instr_fmt = fmt_b1
-    else (others => '0');
+data_1 <= std_logic_vector(pc) when instr_fmt = fmt_b1
+    else read_data_1;
 
 data_2 <= read_data_2 when instr_fmt = fmt_a1 or instr_fmt = fmt_l3
     else (15 downto 4 => '0') & instr(3 downto 0) when instr_fmt = fmt_a2

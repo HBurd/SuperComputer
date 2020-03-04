@@ -151,6 +151,7 @@ set files [list \
  "[file normalize "$origin_dir/misc/format_a_test.mem"]"\
  "[file normalize "$origin_dir/misc/branch_test.mem"]"\
  "[file normalize "$origin_dir/misc/bubble_insertion_test.mem"]"\
+ "[file normalize "$origin_dir/misc/subroutine_test.mem"]"\
 ]
 add_files -norecurse -fileset $obj $files
 
