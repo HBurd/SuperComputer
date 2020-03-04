@@ -62,7 +62,7 @@ begin
     write_data <= alu_result(31 downto 16) when input.opcode = op_muh else
         input.data_1(15 downto 8) & input.data_2(7 downto 0) when (input.opcode = op_loadimm and input.imm_high = '0') else
         input.data_2(7 downto 0) & input.data_1(7 downto 0) when (input.opcode = op_loadimm and input.imm_high = '1') else
-        input.data_1 when (input.opcode = op_mov) else
+        input.data_1 when (input.opcode = op_mov or input.opcode = op_return) else
         alu_result(15 downto 0);
 
 end Behavioral;
