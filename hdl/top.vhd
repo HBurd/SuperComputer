@@ -28,7 +28,7 @@ use work.common.all;
 entity top is
 Generic(
     RAM_INIT_FILE : string := "none";
-    ROM_INIT_FILE : string := "none");
+    ROM_INIT_FILE : string := "FORMAT_B_Test_Part1.mem");
 Port (
     clk : in STD_LOGIC;
     rst : in std_logic;
@@ -84,7 +84,7 @@ architecture Behavioral of top is
     signal mem_iaddr, mem_iread, mem_daddr, mem_dread, mem_dwrite : std_logic_vector(15 downto 0);
     signal mem_dwen : std_logic;
     
-    signal count : unsigned(63 downto 0);
+    signal clk_div : unsigned(63 downto 0);
     
     signal dig0 : std_logic_vector(3 downto 0);
     signal dig1 : std_logic_vector(3 downto 0);
@@ -128,7 +128,7 @@ dig1 <= std_logic_vector(mem_iaddr(7 downto 4));
 dig2 <= std_logic_vector(mem_iaddr(11 downto 8));
 dig3 <= std_logic_vector(mem_iaddr(15 downto 12));
 
-D0: display_controller port map (clk => clk100MHz,
+D0: display_controller port map (clk => clk_div(16),
                                  reset => '0',
                                  hex3 => dig3,
                                  hex2 => dig2,
@@ -136,5 +136,14 @@ D0: display_controller port map (clk => clk100MHz,
                                  hex0 => dig0,
                                  an => an,
                                  sseg => seg);
+       
+-- divide 100MHz clk                          
+process(clk100MHz) begin
+    if rst = '1' then
+        clk_div <= (others => '0');
+    elsif rising_edge(clk100MHz) then
+        clk_div <= clk_div + 1;
+    end if;
+end process;
 
 end Behavioral;

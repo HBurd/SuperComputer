@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="branch_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="branch_tb" />
+            <top_module name="common" />
+            <top_module name="vcomponents" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0fs"></ZoomStartTime>
+      <ZoomEndTime time="134400000001fs"></ZoomEndTime>
+      <Cursor1Time time="497782990000fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="237"></NameColumnWidth>
+      <ValueColumnWidth column_width="134"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="12" />
+   <wvobject fp_name="/branch_tb/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/branch_tb/rst" type="logic">
+      <obj_property name="ElementShortName">rst</obj_property>
+      <obj_property name="ObjectShortName">rst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/branch_tb/mem_iaddr" type="array">
+      <obj_property name="ElementShortName">mem_iaddr[15:0]</obj_property>
+      <obj_property name="ObjectShortName">mem_iaddr[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/branch_tb/mem_iread" type="array">
+      <obj_property name="ElementShortName">mem_iread[15:0]</obj_property>
+      <obj_property name="ObjectShortName">mem_iread[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/branch_tb/mem_daddr" type="array">
+      <obj_property name="ElementShortName">mem_daddr[15:0]</obj_property>
+      <obj_property name="ObjectShortName">mem_daddr[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/branch_tb/mem_dread" type="array">
+      <obj_property name="ElementShortName">mem_dread[15:0]</obj_property>
+      <obj_property name="ObjectShortName">mem_dread[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/branch_tb/mem_dwrite" type="array">
+      <obj_property name="ElementShortName">mem_dwrite[15:0]</obj_property>
+      <obj_property name="ObjectShortName">mem_dwrite[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/branch_tb/mem_dwen" type="logic">
+      <obj_property name="ElementShortName">mem_dwen</obj_property>
+      <obj_property name="ObjectShortName">mem_dwen</obj_property>
+   </wvobject>
+   <wvobject fp_name="group12" type="group">
+      <obj_property name="label">wb</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/branch_tb/instr_pipeline/writeback_stage/input" type="array">
+         <obj_property name="ElementShortName">input</obj_property>
+         <obj_property name="ObjectShortName">input</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/writeback_stage/write_enable" type="logic">
+         <obj_property name="ElementShortName">write_enable</obj_property>
+         <obj_property name="ObjectShortName">write_enable</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/writeback_stage/writeback_data" type="array">
+         <obj_property name="ElementShortName">writeback_data[15:0]</obj_property>
+         <obj_property name="ObjectShortName">writeback_data[15:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="/branch_tb/instr_pipeline/reg_file/reg_file" type="array">
+      <obj_property name="ElementShortName">reg_file[0:7]</obj_property>
+      <obj_property name="ObjectShortName">reg_file[0:7]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="group28" type="group">
+      <obj_property name="label">ex</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/branch_tb/instr_pipeline/execute_stage/input" type="array">
+         <obj_property name="ElementShortName">input</obj_property>
+         <obj_property name="ObjectShortName">input</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/execute_stage/n" type="logic">
+         <obj_property name="ElementShortName">n</obj_property>
+         <obj_property name="ObjectShortName">n</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/execute_stage/z" type="logic">
+         <obj_property name="ElementShortName">z</obj_property>
+         <obj_property name="ObjectShortName">z</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/execute_stage/write_data" type="array">
+         <obj_property name="ElementShortName">write_data[15:0]</obj_property>
+         <obj_property name="ObjectShortName">write_data[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/execute_stage/n_next" type="logic">
+         <obj_property name="ElementShortName">n_next</obj_property>
+         <obj_property name="ObjectShortName">n_next</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/execute_stage/z_next" type="logic">
+         <obj_property name="ElementShortName">z_next</obj_property>
+         <obj_property name="ObjectShortName">z_next</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/execute_stage/nz_update" type="logic">
+         <obj_property name="ElementShortName">nz_update</obj_property>
+         <obj_property name="ObjectShortName">nz_update</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/execute_stage/pc_overwrite" type="logic">
+         <obj_property name="ElementShortName">pc_overwrite</obj_property>
+         <obj_property name="ObjectShortName">pc_overwrite</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/execute_stage/pc_value" type="array">
+         <obj_property name="ElementShortName">pc_value[15:0]</obj_property>
+         <obj_property name="ObjectShortName">pc_value[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/execute_stage/alu_mode" type="other">
+         <obj_property name="ElementShortName">alu_mode</obj_property>
+         <obj_property name="ObjectShortName">alu_mode</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/execute_stage/alu_in_1" type="array">
+         <obj_property name="ElementShortName">alu_in_1[15:0]</obj_property>
+         <obj_property name="ObjectShortName">alu_in_1[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/execute_stage/alu_in_2" type="array">
+         <obj_property name="ElementShortName">alu_in_2[15:0]</obj_property>
+         <obj_property name="ObjectShortName">alu_in_2[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/execute_stage/alu_result" type="array">
+         <obj_property name="ElementShortName">alu_result[31:0]</obj_property>
+         <obj_property name="ObjectShortName">alu_result[31:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group42" type="group">
+      <obj_property name="label">dec</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/instr" type="array">
+         <obj_property name="ElementShortName">instr[15:0]</obj_property>
+         <obj_property name="ObjectShortName">instr[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/write_idx" type="array">
+         <obj_property name="ElementShortName">write_idx[2:0]</obj_property>
+         <obj_property name="ObjectShortName">write_idx[2:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/read_idx_1" type="array">
+         <obj_property name="ElementShortName">read_idx_1[2:0]</obj_property>
+         <obj_property name="ObjectShortName">read_idx_1[2:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/read_idx_2" type="array">
+         <obj_property name="ElementShortName">read_idx_2[2:0]</obj_property>
+         <obj_property name="ObjectShortName">read_idx_2[2:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/read_data_1" type="array">
+         <obj_property name="ElementShortName">read_data_1[15:0]</obj_property>
+         <obj_property name="ObjectShortName">read_data_1[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/read_data_2" type="array">
+         <obj_property name="ElementShortName">read_data_2[15:0]</obj_property>
+         <obj_property name="ObjectShortName">read_data_2[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/pc" type="array">
+         <obj_property name="ElementShortName">pc[15:0]</obj_property>
+         <obj_property name="ObjectShortName">pc[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/opcode" type="other">
+         <obj_property name="ElementShortName">opcode</obj_property>
+         <obj_property name="ObjectShortName">opcode</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/data_1" type="array">
+         <obj_property name="ElementShortName">data_1[15:0]</obj_property>
+         <obj_property name="ObjectShortName">data_1[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/data_2" type="array">
+         <obj_property name="ElementShortName">data_2[15:0]</obj_property>
+         <obj_property name="ObjectShortName">data_2[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/imm_high" type="logic">
+         <obj_property name="ElementShortName">imm_high</obj_property>
+         <obj_property name="ObjectShortName">imm_high</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/mark_pending" type="logic">
+         <obj_property name="ElementShortName">mark_pending</obj_property>
+         <obj_property name="ObjectShortName">mark_pending</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/ridx1_pending" type="logic">
+         <obj_property name="ElementShortName">ridx1_pending</obj_property>
+         <obj_property name="ObjectShortName">ridx1_pending</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/ridx2_pending" type="logic">
+         <obj_property name="ElementShortName">ridx2_pending</obj_property>
+         <obj_property name="ObjectShortName">ridx2_pending</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/bubble" type="logic">
+         <obj_property name="ElementShortName">bubble</obj_property>
+         <obj_property name="ObjectShortName">bubble</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/opcode_unsigned" type="array">
+         <obj_property name="ElementShortName">opcode_unsigned[6:0]</obj_property>
+         <obj_property name="ObjectShortName">opcode_unsigned[6:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/opcode_internal" type="other">
+         <obj_property name="ElementShortName">opcode_internal</obj_property>
+         <obj_property name="ObjectShortName">opcode_internal</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/instr_fmt" type="other">
+         <obj_property name="ElementShortName">instr_fmt</obj_property>
+         <obj_property name="ObjectShortName">instr_fmt</obj_property>
+      </wvobject>
+      <wvobject fp_name="/branch_tb/instr_pipeline/decode_stage/insert_bubble" type="logic">
+         <obj_property name="ElementShortName">insert_bubble</obj_property>
+         <obj_property name="ObjectShortName">insert_bubble</obj_property>
+      </wvobject>
+   </wvobject>
+</wave_config>
