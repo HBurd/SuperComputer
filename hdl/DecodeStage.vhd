@@ -136,8 +136,8 @@ data_1 <= read_data_1 when instr_fmt = fmt_a1
 data_2 <= read_data_2 when instr_fmt = fmt_a1 -- only format a1 reads 2 registers
     else (15 downto 4 => '0') & instr(3 downto 0) when instr_fmt = fmt_a2
     else (15 downto 10 => '0') & instr(8 downto 0) & "0" when instr_fmt = fmt_b1 -- shift to multiply by 2
-    else (15 downto 7 => '0') & instr(5 downto 0) & "0" when instr_fmt = fmt_b2
-    else (15 downto 8 => '0') & instr(7 downto 0) when instr_fmt = fmt_l1
+    else (15 downto 7 => instr(5)) & instr(5 downto 0) & "0" when instr_fmt = fmt_b2 -- sign extend!!
+    else (15 downto 8 => instr(7)) & instr(7 downto 0) when instr_fmt = fmt_l1
     else (others => '0');
 
 imm_high <= instr(8);
