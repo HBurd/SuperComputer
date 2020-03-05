@@ -1,9 +1,13 @@
 	ORG  0x0000
 
-	IN R0 ; 02  -- This example tests how data dependencies are handled
-	IN R1 ; 03  -- The values to be loaded into the corresponding resgister.
-	IN R2 ; 01
-	IN R3 ; 05  --  End of initialization
+	LOADIMM.lower 02
+	MOV R0 R7
+	LOADIMM.lower 03
+	MOV R1 R7
+	LOADIMM.lower 01	
+	MOV R2 R7
+	LOADIMM.lower 05	
+	MOV R3 R7 
 	ADD R1, R1, R2
 	SUB R2, R1, R0
 	SUB R1, R3, R2

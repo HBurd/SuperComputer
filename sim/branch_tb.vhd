@@ -73,6 +73,8 @@ architecture Behavioral of branch_tb is
     signal clk, rst: std_logic;
     signal mem_iaddr, mem_iread, mem_daddr, mem_dread, mem_dwrite : std_logic_vector(15 downto 0);
     signal mem_dwen : std_logic;
+    
+    signal io_in: std_logic_vector(15 downto 0);
 
 begin
 
@@ -90,7 +92,9 @@ begin
     memory_unit : mmu
         generic map(
             RAM_INIT_FILE => "none",
-            ROM_INIT_FILE => "branch_test.mem")
+            --ROM_INIT_FILE => "FORMAT_B_Test_Part1.mem")
+            ROM_INIT_FILE => "FORMAT_B_Test_Part2.mem")
+            --ROM_INIT_FILE => "FORMAT_B_Test_Part3.mem")
         port map(
             clk => clk,
             rst => rst,
@@ -103,7 +107,7 @@ begin
             dwrite => mem_dwrite,
             dread => mem_dread,
             -- I/O ports
-            io_in => x"0000",
+            io_in => io_in,
             io_out => open);
     
     -- clock process 
@@ -120,6 +124,14 @@ begin
         wait until rising_edge(clk);
         wait until falling_edge(clk);
         rst <= '0';
+        wait until rising_edge(clk);
+        io_in <= x"0002";
+        wait until rising_edge(clk);
+        io_in <= x"0003";
+        wait until rising_edge(clk);
+        io_in <= x"0001";
+        wait until rising_edge(clk);
+        io_in <= x"0005";
         wait;
     end process;
 
