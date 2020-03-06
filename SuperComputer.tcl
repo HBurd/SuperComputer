@@ -148,6 +148,7 @@ set files [list \
  "[file normalize "$origin_dir/hdl/BarrelShifter.vhd"]"\
  "[file normalize "$origin_dir/hdl/MemoryStage.vhd"]"\
  "[file normalize "$origin_dir/hdl/pipeline.vhd"]"\
+ "[file normalize "$origin_dir/hdl/feedback.vhd"]"\
  "[file normalize "$origin_dir/misc/format_a_test.mem"]"\
  "[file normalize "$origin_dir/misc/branch_test.mem"]"\
  "[file normalize "$origin_dir/misc/bubble_insertion_test.mem"]"\
