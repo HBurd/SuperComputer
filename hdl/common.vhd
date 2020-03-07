@@ -32,12 +32,11 @@ package common is
     type writeback_latch_t is record
         opcode: opcode_t;
         write_idx: unsigned(2 downto 0);
-        execute_output_data: std_logic_vector(15 downto 0);
         memory_output_data: std_logic_vector(15 downto 0);
     end record writeback_latch_t;
     
     type feedback_t is record
-        idx: std_logic_vector(2 downto 0);
+        idx: unsigned(2 downto 0);
         data: std_logic_vector(15 downto 0);
         ready: std_logic;
         will_write: std_logic;

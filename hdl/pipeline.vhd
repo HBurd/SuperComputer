@@ -59,11 +59,7 @@ architecture Behavioral of pipeline is
             opcode: out opcode_t;
             data_1: out std_logic_vector(15 downto 0);
             data_2: out std_logic_vector(15 downto 0);
-            imm_high: out std_logic;
-            mark_pending: out std_logic;
-            ridx1_pending: in std_logic;
-            ridx2_pending: in std_logic;
-            bubble: out std_logic);
+            imm_high: out std_logic);
     end component;
     
     component ExecuteStage
@@ -76,7 +72,8 @@ architecture Behavioral of pipeline is
             z_next: out std_logic;
             nz_update: out std_logic;
             pc_overwrite: out std_logic;
-            pc_value: out std_logic_vector(15 downto 0));
+            pc_value: out std_logic_vector(15 downto 0);
+            data_fwd: out feedback_t);
     end component;
     
     component MemoryStage
@@ -86,14 +83,15 @@ architecture Behavioral of pipeline is
             daddr: out std_logic_vector(15 downto 0);
             dwen: out std_logic;
             dwrite: out std_logic_vector(15 downto 0);
-            dread: in std_logic_vector(15 downto 0));
+            dread: in std_logic_vector(15 downto 0);
+            data_fwd: out feedback_t);
     end component;
     
     component WriteBack
         Port (
             input: in writeback_latch_t;
             write_enable: out std_logic;
-            writeback_data: out std_logic_vector(15 downto 0));
+            data_fwd: out feedback_t);
     end component;
     
     signal program_counter : std_logic_vector(15 downto 0);
@@ -146,11 +144,7 @@ decode_stage: DecodeStage port map (
     data_1 => decode_data_1,
     data_2 => decode_data_2,
     opcode => decode_opcode,
-    imm_high => imm_high,
-    mark_pending => mark_pending,
-    ridx1_pending => ridx1_pending,
-    ridx2_pending => ridx2_pending,
-    bubble => bubble);
+    imm_high => imm_high);
 
 reg_file: Register_File port map (
     rst => rst,
@@ -162,7 +156,7 @@ reg_file: Register_File port map (
     rd_data2 => read_data_2,
     --write signals
     wr_index => std_logic_vector(writeback_latch.write_idx),
-    wr_data => writeback_data,
+    wr_data => writeback_latch.memory_output_data,
     wr_enable => reg_write_enable,
     mark_pending_index => std_logic_vector(write_idx),
     mark_pending => mark_pending_gated,
@@ -178,7 +172,8 @@ execute_stage: ExecuteStage port map (
     z_next => z_next,
     nz_update => nz_update,
     pc_overwrite => pc_overwrite,
-    pc_value => pc_value);
+    pc_value => pc_value,
+    data_fwd => open);
 
 memory_stage: MemoryStage port map (
     input => memory_latch,
@@ -186,12 +181,13 @@ memory_stage: MemoryStage port map (
     daddr => daddr,
     dwen => dwen,
     dwrite => dwrite,
-    dread => dread);
+    dread => dread,
+    data_fwd => open);
 
 writeback_stage: WriteBack port map (
     input => writeback_latch,
     write_enable => reg_write_enable,
-    writeback_data => writeback_data);
+    data_fwd => open);
 
 -- deal with the program counter
 
@@ -254,7 +250,6 @@ process(clk, rst, pc_overwrite) begin
         writeback_latch <= (
             opcode => op_nop,
             write_idx => (others => '0'),
-            execute_output_data => (others => '0'),
             memory_output_data => (others => '0'));
     elsif rising_edge(clk) then
         if (pc_overwrite = '1') then
@@ -283,8 +278,7 @@ process(clk, rst, pc_overwrite) begin
         writeback_latch <= (
             opcode => memory_latch.opcode,
             write_idx => memory_latch.write_idx,
-            memory_output_data => memory_output_data,
-            execute_output_data => memory_latch.execute_output_data);
+            memory_output_data => memory_output_data);
     end if;
 end process;
 

@@ -9,13 +9,15 @@ entity WriteBack is
     Port (
         input: in writeback_latch_t;
         write_enable: out std_logic;
-        writeback_data: out std_logic_vector(15 downto 0));
+        data_fwd: out feedback_t);
 end WriteBack;
 
 architecture Behavioral of WriteBack is
 
+    signal will_write: std_logic;
+
 begin
-        write_enable <= '1' when (input.opcode = op_add
+        will_write <= '1' when (input.opcode = op_add
                                 or input.opcode = op_sub
                                 or input.opcode = op_mul
                                 or input.opcode = op_muh
@@ -27,21 +29,14 @@ begin
                                 or input.opcode = op_load
                                 or input.opcode = op_loadimm
                                 or input.opcode = op_mov)
-        else '0';
+            else '0';
 
-        writeback_data <= input.execute_output_data when (
-                            input.opcode = op_add
-                         or input.opcode = op_sub
-                         or input.opcode = op_mul
-                         or input.opcode = op_muh
-                         or input.opcode = op_nand
-                         or input.opcode = op_shl
-                         or input.opcode = op_shr
-                         or input.opcode = op_loadimm
-                         or input.opcode = op_mov
-                         or input.opcode = op_br_sub)
-            else input.memory_output_data when (
-                                input.opcode = op_in
-                             or input.opcode = op_load) 
-            else (others => '0');
+        write_enable <= will_write;
+        
+        -- Forwarding
+        data_fwd.will_write <= will_write;
+        data_fwd.ready <= will_write;
+        data_fwd.idx <= input.write_idx;
+        data_fwd.data <= input.memory_output_data;
+        
 end Behavioral;

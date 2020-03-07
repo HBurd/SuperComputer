@@ -14,7 +14,8 @@ entity ExecuteStage is
         z_next: out std_logic;
         nz_update: out std_logic;
         pc_overwrite: out std_logic;
-        pc_value: out std_logic_vector(15 downto 0));
+        pc_value: out std_logic_vector(15 downto 0);
+        data_fwd: out feedback_t);
 end ExecuteStage;
 
 architecture Behavioral of ExecuteStage is
@@ -33,6 +34,8 @@ architecture Behavioral of ExecuteStage is
     signal alu_in_1: std_logic_vector(15 downto 0);
     signal alu_in_2: std_logic_vector(15 downto 0);
     signal alu_result: std_logic_vector(31 downto 0);
+    signal write_data_internal: std_logic_vector(15 downto 0);
+    signal will_write: std_logic;
     
 begin
 
@@ -64,12 +67,14 @@ begin
     alu_in_1 <= input.data_1;
     alu_in_2 <= input.data_2;
 
-    write_data <= alu_result(31 downto 16) when input.opcode = op_muh else
+    write_data_internal <= alu_result(31 downto 16) when input.opcode = op_muh else
         input.data_1(15 downto 8) & input.data_2(7 downto 0) when (input.opcode = op_loadimm and input.imm_high = '0') else
         input.data_2(7 downto 0) & input.data_1(7 downto 0) when (input.opcode = op_loadimm and input.imm_high = '1') else
         input.data_1 when (input.opcode = op_mov) else
         std_logic_vector(input.next_pc) when input.opcode = op_br_sub else
         alu_result(15 downto 0);
+        
+    write_data <= write_data_internal;
         
     nz_update <= '1' when alu_mode = alu_test else '0';
     
@@ -80,5 +85,23 @@ begin
     
     pc_value <= input.data_1 when input.opcode = op_return else
         alu_result(15 downto 0);
+        
+    -- Forwarding
+    will_write <= '1' when input.opcode = op_add
+                          or input.opcode = op_sub
+                          or input.opcode = op_mul
+                          or input.opcode = op_nand
+                          or input.opcode = op_shl
+                          or input.opcode = op_shr
+                          or input.opcode = op_in
+                          or input.opcode = op_br_sub
+                          or input.opcode = op_load
+                          or input.opcode = op_loadimm
+                          or input.opcode = op_mov
+                      else '0';
+    data_fwd.will_write <= will_write;
+    data_fwd.ready <= '1' when input.opcode /= op_in and input.opcode /= op_load and will_write = '1' else '0';
+    data_fwd.idx <= input.write_idx;
+    data_fwd.data <= write_data_internal;
 
 end Behavioral;

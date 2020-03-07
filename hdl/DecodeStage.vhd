@@ -37,11 +37,7 @@ entity DecodeStage is
         opcode: out opcode_t;
         data_1: out std_logic_vector(15 downto 0);
         data_2: out std_logic_vector(15 downto 0);
-        imm_high: out std_logic;
-        mark_pending: out std_logic;
-        ridx1_pending: in std_logic;
-        ridx2_pending: in std_logic;
-        bubble: out std_logic
+        imm_high: out std_logic
     );
 end DecodeStage;
 
@@ -96,21 +92,6 @@ instr_fmt <=
     fmt_l2 when (opcode_internal = op_load or opcode_internal = op_mov) else
     fmt_l3 when (opcode_internal = op_store) else
     fmt_invalid;
-    
-insert_bubble <= '1' when (
-    (instr_fmt = fmt_l2 and ((ridx1_pending = '1') or (ridx2_pending = '1'))) or 
-    (instr_fmt = fmt_l1 and (ridx1_pending = '1')) or
-    (instr_fmt = fmt_a1 and ((ridx1_pending = '1') or (ridx2_pending = '1'))) or
-    (instr_fmt = fmt_a2 and (ridx1_pending = '1')) or
-    (instr_fmt = fmt_a4 and (ridx1_pending = '1')) or
-    (instr_fmt = fmt_b2 and (ridx1_pending = '1')) or
-    (opcode_internal = op_return and (ridx1_pending = '1')))
-    else '0';
-bubble <= insert_bubble;
-opcode <= op_nop when insert_bubble = '1' else opcode_internal;
-
-mark_pending <= '1' when (insert_bubble = '0') and (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_a3 or instr_fmt = fmt_l2 or instr_fmt = fmt_l1) 
-    else '0';
     
 write_idx <= unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_a3 or instr_fmt = fmt_l2)
     else "111" when instr_fmt = fmt_l1  -- loadimm loads into r7
