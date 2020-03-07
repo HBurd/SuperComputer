@@ -68,7 +68,7 @@ begin
     dut: top
     generic map(
     RAM_INIT_FILE => "none",
-    ROM_INIT_FILE => "bubble_insertion_test.mem"
+    ROM_INIT_FILE => "subroutine_test.mem"
     ) 
     port map (
         clk => clk,

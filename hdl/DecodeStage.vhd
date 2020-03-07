@@ -79,6 +79,8 @@ opcode_internal <=
     op_loadimm when opcode_unsigned = 18 else
     op_mov when opcode_unsigned = 19 else
     op_invalid;
+    
+opcode <= opcode_internal;
 
 instr_fmt <=
     fmt_a0 when (opcode_internal = op_nop or opcode_internal = op_return) else

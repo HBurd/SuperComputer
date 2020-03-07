@@ -28,23 +28,22 @@ end pipeline;
 
 architecture Behavioral of pipeline is
 
-    component Register_File
+    component Feedback
         Port(
             rst : in std_logic; 
             clk: in std_logic;
             --read signals
-            rd_index1: in std_logic_vector(2 downto 0);
-            rd_index2: in std_logic_vector(2 downto 0);
+            rd_index1: in unsigned(2 downto 0);
+            rd_index2: in unsigned(2 downto 0);
             rd_data1: out std_logic_vector(15 downto 0);
             rd_data2: out std_logic_vector(15 downto 0);
-            --write signals
-            wr_index: in std_logic_vector(2 downto 0);
-            wr_data: in std_logic_vector(15 downto 0);
-            wr_enable: in std_logic;
-            mark_pending_index: in std_logic_vector(2 downto 0);
-            mark_pending: in std_logic;
-            ridx1_pending: out std_logic;
-            ridx2_pending: out std_logic);
+            -- pipeline control
+            bubble: out std_logic;
+            -- feedback from stages
+            ex_fb : in feedback_t;
+            mem_fb: in feedback_t;
+            wb_fb: in feedback_t
+            );
     end component;
 
     component DecodeStage
@@ -107,10 +106,9 @@ architecture Behavioral of pipeline is
     signal read_data_1: std_logic_vector(15 downto 0);
     signal read_data_2: std_logic_vector(15 downto 0);
     signal imm_high: std_logic;
-    signal mark_pending, mark_pending_gated: std_logic;
     signal bubble: std_logic;
-    signal ridx1_pending: std_logic;
-    signal ridx2_pending: std_logic;
+    signal mark_pending, ridx1_pending, ridx2_pending: std_logic;
+
     
     -- signals from execute stage
     signal execute_latch: execute_latch_t;
@@ -119,17 +117,19 @@ architecture Behavioral of pipeline is
     signal pc_overwrite: std_logic;
     signal pc_value: std_logic_vector(15 downto 0);
     signal branch_mispredict: std_logic;
+    signal ex_fb: feedback_t;
     
     -- signals from memory stage
     signal memory_latch: memory_latch_t;
     signal memory_output_data: std_logic_vector(15 downto 0);
+    signal mem_fb: feedback_t;
     
     -- signals from writeback stage
     signal writeback_latch: writeback_latch_t;
     signal reg_write_enable: std_logic;
     signal writeback_data: std_logic_vector(15 downto 0);
+    signal wb_fb: feedback_t;
 
- 
 
 begin
 
@@ -146,22 +146,19 @@ decode_stage: DecodeStage port map (
     opcode => decode_opcode,
     imm_high => imm_high);
 
-reg_file: Register_File port map (
+feed_back: FeedBack port map (
     rst => rst,
     clk => clk,
     --read signals
-    rd_index1 => std_logic_vector(read_idx_1),
-    rd_index2 => std_logic_vector(read_idx_2),
+    rd_index1 => read_idx_1,
+    rd_index2 => read_idx_2,
     rd_data1 => read_data_1,
     rd_data2 => read_data_2,
+    bubble => bubble,
     --write signals
-    wr_index => std_logic_vector(writeback_latch.write_idx),
-    wr_data => writeback_latch.memory_output_data,
-    wr_enable => reg_write_enable,
-    mark_pending_index => std_logic_vector(write_idx),
-    mark_pending => mark_pending_gated,
-    ridx1_pending => ridx1_pending,
-    ridx2_pending => ridx2_pending);
+    ex_fb => ex_fb,
+    mem_fb => mem_fb,
+    wb_fb => wb_fb);
 
 execute_stage: ExecuteStage port map (
     input => execute_latch,
@@ -173,7 +170,7 @@ execute_stage: ExecuteStage port map (
     nz_update => nz_update,
     pc_overwrite => pc_overwrite,
     pc_value => pc_value,
-    data_fwd => open);
+    data_fwd => ex_fb);
 
 memory_stage: MemoryStage port map (
     input => memory_latch,
@@ -182,12 +179,12 @@ memory_stage: MemoryStage port map (
     dwen => dwen,
     dwrite => dwrite,
     dread => dread,
-    data_fwd => open);
+    data_fwd => mem_fb);
 
 writeback_stage: WriteBack port map (
     input => writeback_latch,
     write_enable => reg_write_enable,
-    data_fwd => open);
+    data_fwd => wb_fb);
 
 -- deal with the program counter
 
@@ -229,8 +226,6 @@ end process;
 
 branch_mispredict <= pc_overwrite; -- assume branches aren't taken
 
-mark_pending_gated <= '1' when (branch_mispredict = '0') and (mark_pending = '1') else '0';
-    
 -- process to update latches on clock edge
 process(clk, rst, pc_overwrite) begin
     if rst = '1' then
@@ -252,7 +247,7 @@ process(clk, rst, pc_overwrite) begin
             write_idx => (others => '0'),
             memory_output_data => (others => '0'));
     elsif rising_edge(clk) then
-        if (pc_overwrite = '1') then
+        if (pc_overwrite = '1' or bubble = '1') then
             execute_latch <= (
                 opcode => op_nop,
                 data_1 => (others => '0'),
