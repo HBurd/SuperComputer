@@ -37,7 +37,7 @@ package common is
     end record writeback_latch_t;
     
     type feedback_t is record
-        idx: std_logic_vector(2 downto 0);
+        idx: unsigned(2 downto 0);
         data: std_logic_vector(15 downto 0);
         ready: std_logic;
         will_write: std_logic;
