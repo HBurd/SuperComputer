@@ -11,7 +11,8 @@ use work.common.all;
 
 entity pipeline is
   Port (
-    rst : in std_logic;
+    rst_ex : in std_logic;
+    rst_ld : in std_logic;
     clk : in std_logic;
     
     -- instruction memory interface
@@ -48,13 +49,12 @@ architecture Behavioral of pipeline is
 
     component DecodeStage
         Port (
-            instr: in std_logic_vector(15 downto 0);
+            input: decode_latch_t;
             write_idx: out unsigned(2 downto 0);
             read_idx_1: out unsigned(2 downto 0);
             read_idx_2: out unsigned(2 downto 0);
             read_data_1: in std_logic_vector(15 downto 0);
             read_data_2: in std_logic_vector(15 downto 0);
-            pc: in unsigned(15 downto 0);
             opcode: out opcode_t;
             data_1: out std_logic_vector(15 downto 0);
             data_2: out std_logic_vector(15 downto 0);
@@ -93,8 +93,12 @@ architecture Behavioral of pipeline is
             data_fwd: out feedback_t);
     end component;
     
+    signal rst: std_logic;
+    
     signal program_counter : std_logic_vector(15 downto 0);
     signal next_program_counter: std_logic_vector(15 downto 0);
+    
+    signal decode_latch: decode_latch_t;
     
     -- signals from decode stage
     signal write_idx: unsigned(2 downto 0);
@@ -133,14 +137,15 @@ architecture Behavioral of pipeline is
 
 begin
 
+rst <= '1' when rst_ex = '1' or rst_ld = '1' else '0';
+
 decode_stage: DecodeStage port map (
-    instr => iread,
+    input => decode_latch,
     write_idx => write_idx,
     read_idx_1 => read_idx_1,
     read_idx_2 => read_idx_2,
     read_data_1 => read_data_1,
     read_data_2 => read_data_2,
-    pc => unsigned(program_counter),
     data_1 => decode_data_1,
     data_2 => decode_data_2,
     opcode => decode_opcode,
@@ -193,8 +198,10 @@ iaddr <= program_counter;
 next_program_counter <= std_logic_vector(unsigned(program_counter) + x"0002");
 
 process(clk, rst) begin
-    if rst = '1' then
+    if rst_ex = '1' then
         program_counter <= (others => '0');
+    elsif rst_ld = '1' then
+        program_counter <= x"0002";
     elsif rising_edge(clk) then
         if (pc_overwrite = '1') then
             program_counter <= pc_value;
@@ -229,6 +236,9 @@ branch_mispredict <= pc_overwrite; -- assume branches aren't taken
 -- process to update latches on clock edge
 process(clk, rst, pc_overwrite) begin
     if rst = '1' then
+        decode_latch <= (
+            instr => (others => '0'),
+            pc => (others => '0'));
         execute_latch <= (
             opcode => op_nop,
             data_1 => (others => '0'),
@@ -247,6 +257,15 @@ process(clk, rst, pc_overwrite) begin
             write_idx => (others => '0'),
             memory_output_data => (others => '0'));
     elsif rising_edge(clk) then
+        if (pc_overwrite = '1') then
+            decode_latch <= (
+                instr => (others => '0'),
+                pc => unsigned(program_counter));
+        else
+            decode_latch <= (
+                instr => iread,
+                pc => unsigned(program_counter));
+        end if;
         if (pc_overwrite = '1' or bubble = '1') then
             execute_latch <= (
                 opcode => op_nop,
