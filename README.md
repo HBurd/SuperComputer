@@ -14,6 +14,10 @@ in the TCL command prompt.
 
 ## Building and using GHDL
 
+NOTE: Xilinx no longer releases VHDL models of their macros so we can't
+simulate the RAM or ROM with GHDL. As a result basically none of our
+testbenches can actually run in GHDL. :(
+
 To install GHDL on Ubuntu/whatever, you need an Ada compiler.
 
 ```
