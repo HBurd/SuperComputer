@@ -238,7 +238,8 @@ process(clk, rst, pc_overwrite) begin
     if rst = '1' then
         decode_latch <= (
             instr => (others => '0'),
-            pc => (others => '0'));
+            pc => (others => '0'),
+            next_pc => x"0002");
         execute_latch <= (
             opcode => op_nop,
             data_1 => (others => '0'),
@@ -260,18 +261,20 @@ process(clk, rst, pc_overwrite) begin
         if (pc_overwrite = '1') then
             decode_latch <= (
                 instr => (others => '0'),
-                pc => unsigned(program_counter));
+                pc => unsigned(program_counter),
+                next_pc => unsigned(next_program_counter));
         else
             decode_latch <= (
                 instr => iread,
-                pc => unsigned(program_counter));
+                pc => unsigned(program_counter),
+                next_pc => unsigned(next_program_counter));
         end if;
         if (pc_overwrite = '1' or bubble = '1') then
             execute_latch <= (
                 opcode => op_nop,
                 data_1 => (others => '0'),
                 data_2 => (others => '0'),
-                next_pc => unsigned(next_program_counter),
+                next_pc => decode_latch.next_pc,
                 write_idx => (others => '0'),
                 imm_high => '0');
         else
@@ -279,7 +282,7 @@ process(clk, rst, pc_overwrite) begin
                 opcode => decode_opcode,
                 data_1 => decode_data_1,
                 data_2 => decode_data_2,
-                next_pc => unsigned(next_program_counter),
+                next_pc => decode_latch.next_pc,
                 write_idx => write_idx,
                 imm_high => imm_high);
         end if;

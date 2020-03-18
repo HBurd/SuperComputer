@@ -14,6 +14,7 @@ package common is
     type decode_latch_t is record
         instr: std_logic_vector(15 downto 0);
         pc: unsigned(15 downto 0);
+        next_pc: unsigned(15 downto 0);
     end record decode_latch_t;
         
     type execute_latch_t is record
