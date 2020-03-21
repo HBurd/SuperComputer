@@ -95,9 +95,10 @@ begin
         generic map(
             RAM_INIT_FILE => "none",
             --ROM_INIT_FILE => "FORMAT_B_Test_Part1.mem")
-            --ROM_INIT_FILE => "FORMAT_B_Test_Part2.mem")
+            ROM_INIT_FILE => "FORMAT_B_Test_Part2.mem")
             --ROM_INIT_FILE => "FORMAT_B_Test_Part3.mem")
-            ROM_INIT_FILE => "subroutine_test.mem")
+            --ROM_INIT_FILE => "subroutine_test.mem")
+            --ROM_INIT_FILE => "FORMAT_L_Test.mem")
         port map(
             clk => clk,
             rst => rst,
