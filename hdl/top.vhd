@@ -28,10 +28,11 @@ use work.common.all;
 entity top is
 Generic(
     RAM_INIT_FILE : string := "none";
-    ROM_INIT_FILE : string := "FORMAT_B_Test_Part1.mem");
+    ROM_INIT_FILE : string := "bootloader.mem");
 Port (
     clk : in STD_LOGIC;
-    rst : in std_logic;
+    rst_ex : in std_logic;
+    rst_ld : in std_logic;
     clk100MHz : in std_logic;
     an : out std_logic_vector(3 downto 0);
     seg : out std_logic_vector(6 downto 0);
@@ -51,7 +52,8 @@ architecture Behavioral of top is
     component pipeline
         Port(
             clk: in std_logic;
-            rst: in std_logic;
+            rst_ex: in std_logic;
+            rst_ld: in std_logic;
             iaddr: out std_logic_vector(15 downto 0);
             iread: in std_logic_vector(15 downto 0);
             daddr: out std_logic_vector(15 downto 0);
@@ -81,6 +83,8 @@ architecture Behavioral of top is
             io_out: out std_logic_vector(15 downto 0));
     end component;
     
+    signal rst: std_logic;
+    
     signal mem_iaddr, mem_iread, mem_daddr, mem_dread, mem_dwrite : std_logic_vector(15 downto 0);
     signal mem_dwen : std_logic;
     
@@ -93,9 +97,12 @@ architecture Behavioral of top is
 
 begin
 
+rst <= '1' when rst_ex = '1' or rst_ld = '1' else '0';
+
 instr_pipeline: pipeline port map(
     clk => clk,
-    rst => rst,
+    rst_ex => rst_ex,
+    rst_ld => rst_ld,
     iaddr => mem_iaddr,
     iread => mem_iread,
     daddr => mem_daddr,
@@ -109,7 +116,7 @@ memory_unit : mmu
         ROM_INIT_FILE => ROM_INIT_FILE)
     port map(
         clk => clk,
-        rst => rst,
+        rst => '0',
         -- instruction port
         iaddr => mem_iaddr,
         iout => mem_iread,

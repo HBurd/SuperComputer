@@ -27,13 +27,12 @@ use work.common.all;
 
 entity DecodeStage is
     Port (
-        instr: in std_logic_vector(15 downto 0);
+        input: in decode_latch_t;
         write_idx: out unsigned(2 downto 0);
         read_idx_1: out unsigned(2 downto 0);
         read_idx_2: out unsigned(2 downto 0);
         read_data_1: in std_logic_vector(15 downto 0);
         read_data_2: in std_logic_vector(15 downto 0);
-        pc: in unsigned(15 downto 0);
         opcode: out opcode_t;
         data_1: out std_logic_vector(15 downto 0);
         data_2: out std_logic_vector(15 downto 0);
@@ -50,8 +49,11 @@ signal opcode_unsigned: unsigned(6 downto 0);
 signal opcode_internal: opcode_t;
 signal instr_fmt: instr_fmt_t;
 signal insert_bubble: std_logic;
+signal instr: std_logic_vector(15 downto 0);
 
 begin
+
+instr <= input.instr;
 
 opcode_unsigned <= unsigned(instr(15 downto 9));
 opcode_internal <=
@@ -109,7 +111,7 @@ read_idx_2 <= unsigned(instr(2 downto 0)) when (instr_fmt = fmt_a1)
     else unsigned(instr(8 downto 6)) when (instr_fmt = fmt_l3)
     else (others => '0');
     
-data_1 <= std_logic_vector(pc) when instr_fmt = fmt_b1
+data_1 <= std_logic_vector(input.pc) when instr_fmt = fmt_b1
     else read_data_1;
 
 data_2 <= read_data_2 when instr_fmt = fmt_a1 or instr_fmt = fmt_l3

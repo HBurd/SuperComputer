@@ -40,7 +40,8 @@ architecture Behavioral of branch_tb is
     component pipeline
         Port(
             clk: in std_logic;
-            rst: in std_logic;
+            rst_ex: in std_logic;
+            rst_ld: in std_logic;
             iaddr: out std_logic_vector(15 downto 0);
             iread: in std_logic_vector(15 downto 0);
             daddr: out std_logic_vector(15 downto 0);
@@ -81,7 +82,8 @@ begin
 
     instr_pipeline: pipeline port map(
         clk => clk,
-        rst => rst,
+        rst_ex => rst,
+        rst_ld => '0',
         iaddr => mem_iaddr,
         iread => mem_iread,
         daddr => mem_daddr,
@@ -95,6 +97,8 @@ begin
             --ROM_INIT_FILE => "FORMAT_B_Test_Part1.mem")
             ROM_INIT_FILE => "FORMAT_B_Test_Part2.mem")
             --ROM_INIT_FILE => "FORMAT_B_Test_Part3.mem")
+            --ROM_INIT_FILE => "subroutine_test.mem")
+            --ROM_INIT_FILE => "FORMAT_L_Test.mem")
         port map(
             clk => clk,
             rst => rst,
