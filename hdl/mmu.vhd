@@ -71,7 +71,7 @@ begin
     
     -- detect IO port accesses
     i_port_read <= '1' when (daddr = x"FFF0" and dwen = '0') else '0';
-    o_port_write <= '1' when (daddr = x"FFF2") else '0';
+    o_port_write <= '1' when (daddr = x"FFF2" and dwen = '1') else '0';
     
     -- check for problems
     err <= daddr_rom_read_error or daddr_rom_read_error or daddr_out_of_range_error or iaddr_out_of_range_error;

@@ -76,6 +76,8 @@ opcode_internal <=
     op_br_z when opcode_unsigned = 69 else
     op_br_sub when opcode_unsigned = 70 else
     op_return when opcode_unsigned = 71 else
+    op_br_o when opcode_unsigned = 72 else
+    op_brr_o when opcode_unsigned = 73 else
     op_load when opcode_unsigned = 16 else
     op_store when opcode_unsigned = 17 else
     op_loadimm when opcode_unsigned = 18 else
@@ -90,27 +92,27 @@ instr_fmt <=
     fmt_a2 when (opcode_internal = op_shl or opcode_internal = op_shr) else
     fmt_a3 when (opcode_internal = op_in) else
     fmt_a4 when (opcode_internal = op_test or opcode_internal = op_out) else
-    fmt_b1 when (opcode_internal = op_brr or opcode_internal = op_brr_n or opcode_internal = op_brr_z) else
-    fmt_b2 when (opcode_internal = op_br or opcode_internal = op_br_n or opcode_internal = op_br_z or opcode_internal = op_br_sub) else
+    fmt_b1 when (opcode_internal = op_brr or opcode_internal = op_brr_n or opcode_internal = op_brr_z or opcode_internal = op_brr_o) else
+    fmt_b2 when (opcode_internal = op_br or opcode_internal = op_br_n or opcode_internal = op_br_z or opcode_internal = op_br_sub or opcode_internal = op_br_o) else
     fmt_l1 when (opcode_internal = op_loadimm) else
     fmt_l2 when (opcode_internal = op_load or opcode_internal = op_mov) else
     fmt_l3 when (opcode_internal = op_store) else
     fmt_invalid;
-    
+
 write_idx <= unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_a2 or instr_fmt = fmt_a3 or instr_fmt = fmt_l2)
     else "111" when instr_fmt = fmt_l1  -- loadimm loads into r7
-        or instr_fmt = fmt_b2  -- br.sub saves PC into r7, other b2's don't write
+        or instr_fmt = fmt_b1 or instr_fmt = fmt_b2  -- br.sub saves PC into r7, br*.overflow writes high bits
     else (others => '0');
 read_idx_1 <= unsigned(instr(5 downto 3)) when (instr_fmt = fmt_a1 or instr_fmt = fmt_l2 or instr_fmt = fmt_l3)
     else unsigned(instr(8 downto 6)) when (instr_fmt = fmt_a4 or instr_fmt = fmt_a2 or instr_fmt = fmt_b2)
     else "111" when instr_fmt = fmt_l1  -- loadimm loads into r7
         or instr_fmt = fmt_a0  -- return restores PC from r7
     else (others => '0');
-    
+
 read_idx_2 <= unsigned(instr(2 downto 0)) when (instr_fmt = fmt_a1)
     else unsigned(instr(8 downto 6)) when (instr_fmt = fmt_l3)
     else (others => '0');
-    
+
 data_1 <= std_logic_vector(input.pc) when instr_fmt = fmt_b1
     else read_data_1;
 

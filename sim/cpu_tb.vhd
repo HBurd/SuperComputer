@@ -43,7 +43,8 @@ component top
         ROM_INIT_FILE : string := "none");
     Port (
         clk : in STD_LOGIC;
-        rst : in std_logic;
+        rst_ex : in std_logic;
+        rst_ld : in std_logic;
         clk100MHz : in std_logic;
         an : out std_logic_vector(3 downto 0);
         seg : out std_logic_vector(6 downto 0);
@@ -68,11 +69,12 @@ begin
     dut: top
     generic map(
     RAM_INIT_FILE => "none",
-    ROM_INIT_FILE => "subroutine_test.mem"
+    ROM_INIT_FILE => "br_overflow_test.mem"
     ) 
     port map (
         clk => clk,
-        rst => rst,
+        rst_ex => rst,
+        rst_ld => '0',
         clk100MHz => '0',
         an => open,
         seg => open,

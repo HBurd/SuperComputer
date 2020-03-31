@@ -10,7 +10,8 @@ entity alu is
            alu_mode : in alu_mode_t;
            result : out STD_LOGIC_VECTOR (31 downto 0);
            z_flag : out STD_LOGIC;
-           n_flag : out STD_LOGIC);
+           n_flag : out STD_LOGIC;
+           o_flag : out STD_LOGIC);
 end alu;
 
 architecture Behavioral of alu is
@@ -55,6 +56,8 @@ begin
         '0';
     
     n_flag <= internal_result(15);
+    
+    o_flag <= '0' when (internal_result(31 downto 15) = (16 downto 0 => '0')) or (internal_result(31 downto 15) = (16 downto 0 => '0')) else '1';
     
     result <= internal_result;
 

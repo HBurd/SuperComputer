@@ -49,7 +49,7 @@ architecture Behavioral of pipeline is
 
     component DecodeStage
         Port (
-            input: decode_latch_t;
+            input: in decode_latch_t;
             write_idx: out unsigned(2 downto 0);
             read_idx_1: out unsigned(2 downto 0);
             read_idx_2: out unsigned(2 downto 0);
@@ -64,21 +64,22 @@ architecture Behavioral of pipeline is
     component ExecuteStage
         Port(
             input: in execute_latch_t;
-            write_data: out std_logic_vector(15 downto 0);
-            n: in std_logic;
-            z: in std_logic;
+            n_old: in std_logic;
+            z_old: in std_logic;
+            o_old: in std_logic;
             n_next: out std_logic;
             z_next: out std_logic;
-            nz_update: out std_logic;
+            o_next: out std_logic;
             pc_overwrite: out std_logic;
             pc_value: out std_logic_vector(15 downto 0);
-            data_fwd: out feedback_t);
+            data_fwd: out feedback_t;
+            overflow_word_old: in std_logic_vector(15 downto 0);
+            overflow_word_next: out std_logic_vector(15 downto 0));
     end component;
     
     component MemoryStage
         Port(
             input: in memory_latch_t;
-            output_data: out std_logic_vector(15 downto 0);
             daddr: out std_logic_vector(15 downto 0);
             dwen: out std_logic;
             dwrite: out std_logic_vector(15 downto 0);
@@ -116,8 +117,8 @@ architecture Behavioral of pipeline is
     
     -- signals from execute stage
     signal execute_latch: execute_latch_t;
-    signal execute_output_data: std_logic_vector(15 downto 0);
-    signal n, n_next, z, z_next, nz_update: std_logic;
+    signal n, n_next, z, z_next, o, o_next: std_logic;
+    signal overflow_word, overflow_word_next: std_logic_vector(15 downto 0);
     signal pc_overwrite: std_logic;
     signal pc_value: std_logic_vector(15 downto 0);
     signal branch_mispredict: std_logic;
@@ -167,19 +168,20 @@ feed_back: FeedBack port map (
 
 execute_stage: ExecuteStage port map (
     input => execute_latch,
-    write_data => execute_output_data,
-    n => n,
-    z => z,
+    n_old => n,
+    z_old => z,
+    o_old => o,
     n_next => n_next,
     z_next => z_next,
-    nz_update => nz_update,
+    o_next => o_next,
     pc_overwrite => pc_overwrite,
     pc_value => pc_value,
-    data_fwd => ex_fb);
+    data_fwd => ex_fb,
+    overflow_word_old => overflow_word,
+    overflow_word_next => overflow_word_next);
 
 memory_stage: MemoryStage port map (
     input => memory_latch,
-    output_data => memory_output_data,
     daddr => daddr,
     dwen => dwen,
     dwrite => dwrite,
@@ -197,7 +199,7 @@ iaddr <= program_counter;
 
 next_program_counter <= std_logic_vector(unsigned(program_counter) + x"0002");
 
-process(clk, rst) begin
+process(clk, rst_ex, rst_ld) begin
     if rst_ex = '1' then
         program_counter <= (others => '0');
     elsif rst_ld = '1' then
@@ -220,11 +222,13 @@ process (clk, rst) begin
     if rst = '1' then
         n <= '0';
         z <= '0';
+        o <= '0';
+        overflow_word <= (others => '0');
     elsif rising_edge(clk) then
-        if (nz_update = '1') then
-            n <= n_next;
-            z <= z_next;
-        end if;
+        n <= n_next;
+        z <= z_next;
+        o <= o_next;
+        overflow_word <= overflow_word_next;
     end if;
 end process;
 
@@ -252,11 +256,9 @@ process(clk, rst, pc_overwrite) begin
             src => (others => '0'),
             dest => (others => '0'),
             write_idx => (others => '0'),
-            execute_output_data => (others => '0'));
+            execute_output_data => FEEDBACK_RESET);
         writeback_latch <= (
-            opcode => op_nop,
-            write_idx => (others => '0'),
-            memory_output_data => (others => '0'));
+            memory_output_data => FEEDBACK_RESET);
     elsif rising_edge(clk) then
         if (pc_overwrite = '1') then
             decode_latch <= (
@@ -291,11 +293,9 @@ process(clk, rst, pc_overwrite) begin
             src => execute_latch.data_1,
             dest => execute_latch.data_2,
             write_idx => execute_latch.write_idx,
-            execute_output_data => execute_output_data);
+            execute_output_data => ex_fb);
         writeback_latch <= (
-            opcode => memory_latch.opcode,
-            write_idx => memory_latch.write_idx,
-            memory_output_data => memory_output_data);
+            memory_output_data => mem_fb);
     end if;
 end process;
 
