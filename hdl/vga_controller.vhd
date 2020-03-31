@@ -42,8 +42,8 @@ architecture behavioural of vga_controller is
     constant TOTAL_WIDTH : natural := H_FRONT_PORCH_LEN + H_PULSE_LEN + H_BACK_PORCH_LEN + H_ACTIVE_LEN;
     constant TOTAL_HEIGHT : natural := V_FRONT_PORCH_LEN + V_PULSE_LEN + V_BACK_PORCH_LEN + V_ACTIVE_LEN;
 
-    constant SCREEN_CHAR_WIDTH: natural := 91;
-    constant SCREEN_CHAR_HEIGHT: natural := 48;
+    constant SCREEN_CHAR_WIDTH: natural := 80;
+    constant SCREEN_CHAR_HEIGHT: natural := 30;
 
     signal clk_div: unsigned(1 downto 0);
     signal clk25MHz: std_logic;
@@ -52,15 +52,15 @@ architecture behavioural of vga_controller is
     signal v_counter: unsigned(9 downto 0);
 
     -- character stuff 
-    constant CHAR_WIDTH: natural := 5;
-    constant CHAR_HEIGHT: natural := 9;
+    constant CHAR_WIDTH: natural := 8;
+    constant CHAR_HEIGHT: natural := 16;
     
-    constant CHAR_SPACE_H: natural := 7;
-    constant CHAR_SPACE_V: natural := 10;
+    constant CHAR_SPACE_H: natural := 8;
+    constant CHAR_SPACE_V: natural := 16;
     
     constant CHAR_ADDR_BITS: natural := 13;
     
-    signal char_data: std_logic_vector(63 downto 0);
+    signal char_data: std_logic_vector(127 downto 0);
     
     signal bit_x: unsigned(3 downto 0);
     signal bit_y: unsigned(3 downto 0);
@@ -144,13 +144,13 @@ begin
             ADDR_WIDTH_A => 7,
             AUTO_SLEEP_TIME => 0,
             ECC_MODE => "no_ecc",
-            MEMORY_INIT_FILE => "character_data.mem",
+            MEMORY_INIT_FILE => "unifont.mem",
             MEMORY_INIT_PARAM => "0",
             MEMORY_OPTIMIZATION => "true",
             MEMORY_PRIMITIVE => "auto",
-            MEMORY_SIZE => 128 * 64,
+            MEMORY_SIZE => 128 * 128,
             MESSAGE_CONTROL => 0,
-            READ_DATA_WIDTH_A => 64,
+            READ_DATA_WIDTH_A => 128,
             READ_LATENCY_A => 0,
             READ_RESET_VALUE_A => "0",
             USE_MEM_INIT => 1,

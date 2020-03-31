@@ -246,9 +246,9 @@ begin
         generic map(
             MEMORY_SIZE => 4096 * 8,
             CLOCKING_MODE => "independent_clock",
-            MEMORY_INIT_FILE => "character_init.mem",
+            MEMORY_INIT_FILE => "none",
             MEMORY_INIT_PARAM => "0",
-            USE_MEM_INIT => 1,
+            USE_MEM_INIT => 0,
             MESSAGE_CONTROL => 0,
             USE_EMBEDDED_CONSTRAINT => 0,
             MEMORY_OPTIMIZATION => "true",

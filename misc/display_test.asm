@@ -1,7 +1,7 @@
         org 0x0000
 
-        loadimm.lower 1
-        loadimm.upper 1
+        loadimm.lower 65
+        loadimm.upper 66
         mov r0 r7
         loadimm.lower 0x00
         loadimm.upper 0x10
