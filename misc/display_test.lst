@@ -1,0 +1,34 @@
+
+;
+; Created on Tue Mar 24 20:32:06 2020 with ECE 449 assembler v1.10 Beta 4 (16 bit).
+;
+;Header Section
+RADIX 10
+DEPTH 512
+WIDTH 16
+DEFAULT 0
+;
+; Data Section
+; Specifies data to be stored in different addresses
+; e.g., DATA 0:A, 1:0
+;
+RADIX 16
+DATA 
+0000 => "0010010000000001", -- 0000 - 2401       loadimm.lower 1    
+0002 => "0010010100000001", -- 0002 - 2501       loadimm.upper 1    
+0004 => "0010011000111000", -- 0004 - 2638       mov           r0,r7
+0006 => "0010010000000000", -- 0006 - 2400       loadimm.lower 0x00 
+0008 => "0010010100010000", -- 0008 - 2510       loadimm.upper 0x10 
+0010 => "0010011001111000", -- 000A - 2678       mov           r1,r7
+0012 => "0010010000000010", -- 000C - 2402       loadimm.lower 0x02 
+0014 => "0010010100000000", -- 000E - 2500       loadimm.upper 0x00 
+0016 => "0010011010111000", -- 0010 - 26B8       mov           r2,r7
+0018 => "0010001001000000", -- 0012 - 2240 Loop: store         r1,r0
+0020 => "0000001001001010", -- 0014 - 024A       add           r1,r1,r2
+0022 => "1000000111111110", -- 0016 - 81FE       brr           Loop 
+
+
+-------------------------------------------------------
+Symbol Table:
+Loop      18 (0012)
+

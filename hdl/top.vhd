@@ -28,7 +28,7 @@ use work.common.all;
 entity top is
 Generic(
     RAM_INIT_FILE : string := "none";
-    ROM_INIT_FILE : string := "bootloader.mem");
+    ROM_INIT_FILE : string := "display_test.mem");
 Port (
     clk : in STD_LOGIC;
     rst_ex : in std_logic;
@@ -86,6 +86,7 @@ architecture Behavioral of top is
             ROM_INIT_FILE : string := "none");
         Port(
             clk: in std_logic;
+            clk100MHz: in std_logic;
             rst: in std_logic;
             err: out std_logic;
             -- instruction port
@@ -98,7 +99,10 @@ architecture Behavioral of top is
             dread: out std_logic_vector(15 downto 0); -- valid when dwen = 0
             -- i/o ports
             io_in: in std_logic_vector(15 downto 0);
-            io_out: out std_logic_vector(15 downto 0));
+            io_out: out std_logic_vector(15 downto 0);
+            -- graphics controller interface
+            char_addr : in unsigned(12 downto 0);
+            selected_char : out unsigned(7 downto 0));
     end component;
     
     signal rst: std_logic;
@@ -137,6 +141,7 @@ memory_unit : mmu
         ROM_INIT_FILE => ROM_INIT_FILE)
     port map(
         clk => clk,
+        clk100MHz => clk100MHz,
         rst => '0',
         -- instruction port
         iaddr => mem_iaddr,
@@ -148,7 +153,9 @@ memory_unit : mmu
         dread => mem_dread,
         -- I/O ports
         io_in => io_in,
-        io_out => io_out);
+        io_out => io_out,
+        char_addr => char_addr,
+        selected_char => selected_char);
 
 vga : vga_controller
     port map (

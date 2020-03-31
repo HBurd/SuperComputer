@@ -19,9 +19,9 @@ use xpm.vcomponents.all;
 -- RAM     addr(12 downto 10) = b"001"
 -- 0x07FF
 -- 
--- 0x0800
+-- 0x1000
 -- CBUF    addr(12 downto 10) = b"1xx"
--- 0x190F
+-- 0x2000
 --
 -- 0x0C00
 -- unmapped
@@ -40,6 +40,7 @@ entity mmu is
     ROM_INIT_FILE : string := "none");
   Port (
   clk : in std_logic;
+  clk100MHz : in std_logic;
   rst : in std_logic;
   err : out std_logic; -- something has gone wrong
   
@@ -88,6 +89,7 @@ signal cbuf_rw_wea : std_logic_vector (0 downto 0);
 signal cbuf_rw_din : std_logic_vector(15 downto 0);
 signal cbuf_rw_dout : std_logic_vector (15 downto 0);
 
+signal char_word_addr: unsigned(12 downto 0);
 signal selected_char_wide : std_logic_vector(15 downto 0);
 
 -- word-rounded addresses
@@ -154,7 +156,8 @@ begin
         end if;  
     end process;
 
-    selected_char <= unsigned(selected_char_wide(7 downto 0));
+    char_word_addr <= '0' & char_addr(12 downto 1);
+    selected_char <= unsigned(selected_char_wide(7 downto 0)) when char_addr(0) = '0' else unsigned(selected_char_wide(15 downto 8));
 
     -- Both memories (and all their ports) use a the same clock and rst lines.
 
@@ -241,8 +244,8 @@ begin
     -- character buffer ram for interacting with the graphics controller
     char_buffer_ram : xpm_memory_dpdistram
         generic map(
-            MEMORY_SIZE => 4368 * 8,
-            CLOCKING_MODE => "common_clock",
+            MEMORY_SIZE => 4096 * 8,
+            CLOCKING_MODE => "independent_clock",
             MEMORY_INIT_FILE => "character_init.mem",
             MEMORY_INIT_PARAM => "0",
             USE_MEM_INIT => 1,
@@ -274,11 +277,11 @@ begin
             douta => cbuf_rw_dout,
             
             -- read-only port
-            clkb => clk,
+            clkb => clk100MHz,
             rstb => rst,
             enb => '1',
             regceb => '1',
-            addrb => std_logic_vector(char_addr),
+            addrb => std_logic_vector(char_word_addr),
             doutb => selected_char_wide
         );
 
