@@ -48,8 +48,10 @@ component top
         clk100MHz : in std_logic;
         an : out std_logic_vector(3 downto 0);
         seg : out std_logic_vector(6 downto 0);
-        io_in: in std_logic_vector(15 downto 0);
-        io_out: out std_logic_vector(15 downto 0));
+        io1_in: in std_logic_vector(15 downto 0);
+        io1_out: out std_logic_vector(15 downto 0);
+        io2_in: in std_logic_vector(15 downto 6);
+        io2_out: out std_logic_vector(0 downto 0));
 end component;
 
 signal clk, rst: std_logic;
@@ -69,17 +71,19 @@ begin
     dut: top
     generic map(
     RAM_INIT_FILE => "none",
-    ROM_INIT_FILE => "br_overflow_test.mem"
+    ROM_INIT_FILE => "bootloader.mem"
     ) 
     port map (
         clk => clk,
-        rst_ex => rst,
-        rst_ld => '0',
+        rst_ex => '0',
+        rst_ld => rst,
         clk100MHz => '0',
         an => open,
         seg => open,
-        io_in => in_signal,
-        io_out => out_signal
+        io1_in => in_signal,
+        io1_out => out_signal,
+        io2_in => x"AA" & "10",
+        io2_out => open
     );
     
     in_signal <= x"0050";

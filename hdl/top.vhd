@@ -36,8 +36,10 @@ Port (
     clk100MHz : in std_logic;
     an : out std_logic_vector(3 downto 0);
     seg : out std_logic_vector(6 downto 0);
-    io_in: in std_logic_vector(15 downto 0);
-    io_out: out std_logic_vector(15 downto 0));
+    io1_in: in std_logic_vector(15 downto 0);
+    io1_out: out std_logic_vector(15 downto 0);
+    io2_in: in std_logic_vector(15 downto 6);
+    io2_out: out std_logic_vector(0 downto 0));
 end top;
 
 architecture Behavioral of top is
@@ -79,8 +81,10 @@ architecture Behavioral of top is
             dwrite: in std_logic_vector(15 downto 0); -- used when dwen = 1
             dread: out std_logic_vector(15 downto 0); -- valid when dwen = 0
             -- i/o ports
-            io_in: in std_logic_vector(15 downto 0);
-            io_out: out std_logic_vector(15 downto 0));
+            io1_in: in std_logic_vector(15 downto 0);
+            io1_out: out std_logic_vector(15 downto 0);
+            io2_in: in std_logic_vector(15 downto 0);
+            io2_out: out std_logic_vector(15 downto 0));
     end component;
     
     signal rst: std_logic;
@@ -94,6 +98,9 @@ architecture Behavioral of top is
     signal dig1 : std_logic_vector(3 downto 0);
     signal dig2 : std_logic_vector(3 downto 0);
     signal dig3 : std_logic_vector(3 downto 0);
+
+    signal io2_in_internal: std_logic_vector(15 downto 0);
+    signal io2_out_internal: std_logic_vector(15 downto 0); 
 
 begin
 
@@ -126,9 +133,14 @@ memory_unit : mmu
         dwrite => mem_dwrite,
         dread => mem_dread,
         -- I/O ports
-        io_in => io_in,
-        io_out => io_out);
-    
+        io1_in => io1_in,
+        io1_out => io1_out,
+        io2_in => io2_in_internal,
+        io2_out => io2_out_internal);
+
+io2_in_internal(5 downto 0) <= (5 downto 0 => '0');
+io2_in_internal(15 downto 6) <= io2_in;
+io2_out <= io2_out_internal(0 downto 0);
     
 dig0 <= std_logic_vector(mem_iaddr(3 downto 0));
 dig1 <= std_logic_vector(mem_iaddr(7 downto 4));

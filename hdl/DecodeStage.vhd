@@ -48,7 +48,6 @@ type instr_fmt_t is (fmt_a0, fmt_a1, fmt_a2, fmt_a3, fmt_a4, fmt_b1, fmt_b2, fmt
 signal opcode_unsigned: unsigned(6 downto 0);
 signal opcode_internal: opcode_t;
 signal instr_fmt: instr_fmt_t;
-signal insert_bubble: std_logic;
 signal instr: std_logic_vector(15 downto 0);
 
 begin

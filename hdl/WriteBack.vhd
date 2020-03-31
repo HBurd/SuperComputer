@@ -14,8 +14,6 @@ end WriteBack;
 
 architecture Behavioral of WriteBack is
 
-    signal will_write: std_logic;
-
 begin
 
         write_enable <= input.memory_output_data.will_write;

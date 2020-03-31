@@ -57,7 +57,7 @@ class MissingParameterForEquate(Exception): pass
 class SymbolAlreadyDefined(Exception): pass
 class MissingParameterForOrg(Exception): pass
 
-Version = "1.10 Beta 4"
+Version = "1.11"
  
 
 
@@ -215,6 +215,22 @@ DATA """ % (time.ctime(time.time()), Version, self.memory_depth)
 		s = ""
 		for i in range(0,self.highest_org + 1,2):
 			s = s + '%04X\n' % ( self.machine_code[i])
+
+		return s
+
+	def MachineCode2CoeString(self):
+		# construct string of hex numbers for machine code text file
+
+		s = "memory_initialization_radix=16;\nmemory_initialization_vector=\n"
+
+		for i in range(0,self.highest_org + 1,2):
+			if ( i != 0 ):
+				s = s + ',\n'
+
+			s = s + '%04X' % ( self.machine_code[i])
+
+		s = s + ';\n'
+
 
 		return s
 
@@ -1024,8 +1040,10 @@ features:
 	if opt_hash.has_key('-o'):
 		ListingStream = open(opt_hash['-o']+".lst", 'w')
 		HexStream = open(opt_hash['-o']+".hex", 'w')
+		CoeStream = open(opt_hash['-o']+".coe", 'w')
 	else:
 		HexStream = None
+		CoeStream = None
 		ListingStream = sys.stdout
 
 	# read in the source file
@@ -1051,6 +1069,9 @@ features:
 
 	# write the mem file to the output stream
 	ListingStream.write(a.MachineCode2String() + '\n')
+
+	if ( CoeStream != None ):
+		CoeStream.write(a.MachineCode2CoeString() + '\n')
 
 	if ( HexStream != None ):
 		HexStream.write(a.MachineCode2HexString() + '\n')

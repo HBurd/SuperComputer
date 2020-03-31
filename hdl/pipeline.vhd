@@ -265,6 +265,8 @@ process(clk, rst, pc_overwrite) begin
                 instr => (others => '0'),
                 pc => unsigned(program_counter),
                 next_pc => unsigned(next_program_counter));
+        elsif (bubble = '1') then
+            decode_latch <= decode_latch;
         else
             decode_latch <= (
                 instr => iread,
