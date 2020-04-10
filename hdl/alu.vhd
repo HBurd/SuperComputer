@@ -57,7 +57,7 @@ begin
     
     n_flag <= internal_result(15);
     
-    o_flag <= '0' when (internal_result(31 downto 15) = (16 downto 0 => '0')) or (internal_result(31 downto 15) = (16 downto 0 => '0')) else '1';
+    o_flag <= '0' when (internal_result(31 downto 15) = (16 downto 0 => '0')) or (internal_result(31 downto 15) = (16 downto 0 => '1')) else '1';
     
     result <= internal_result;
 
