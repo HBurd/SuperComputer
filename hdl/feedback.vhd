@@ -10,7 +10,7 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity feedback is
+entity DataForwarder is
   Port (
     clk: in std_logic;
     rst: in std_logic;
@@ -26,9 +26,9 @@ entity feedback is
     ex_fb: in feedback_t;
     mem_fb: in feedback_t;
     wb_fb: in feedback_t);
-end feedback;
+end DataForwarder;
 
-architecture Behavioral of feedback is
+architecture Behavioral of DataForwarder is
 
 component register_file is
 port(

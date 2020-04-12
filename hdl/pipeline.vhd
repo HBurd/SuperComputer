@@ -29,7 +29,7 @@ end pipeline;
 
 architecture Behavioral of pipeline is
 
-    component Feedback
+    component DataForwarder
         Port(
             rst : in std_logic; 
             clk: in std_logic;
@@ -152,7 +152,7 @@ decode_stage: DecodeStage port map (
     opcode => decode_opcode,
     imm_high => imm_high);
 
-feed_back: FeedBack port map (
+forwarder: DataForwarder port map (
     rst => rst,
     clk => clk,
     --read signals
