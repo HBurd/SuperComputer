@@ -3,12 +3,6 @@ use IEEE.STD_LOGIC_1164.ALL;
 use ieee.std_logic_misc.all;
 use ieee.numeric_std.all;
 
-library UNISIM;
-use UNISIM.VComponents.all;
-
-library xpm;
-use xpm.vcomponents.all;
-
 -- Memory map:
 --
 -- 0x0000
@@ -170,41 +164,21 @@ begin
 
     -- Both memories (and all their ports) use a the same clock and rst lines.
 
-    -- xpm_memory_sprom: Single Port ROM
-    -- Xilinx Parametrized Macro, version 2017.4
-    xpm_memory_sprom_inst: xpm_memory_sprom
+
+    sprom_inst: sprom
     generic map (
-        ADDR_WIDTH_A => 16,
-        AUTO_SLEEP_TIME => 0,
-        ECC_MODE => "no_ecc",
+        ADDR_WIDTH => 16,
         MEMORY_INIT_FILE => ROM_INIT_FILE,
-        MEMORY_INIT_PARAM => "0",
-        MEMORY_OPTIMIZATION => "true",
-        MEMORY_PRIMITIVE => "auto",
         MEMORY_SIZE => 1024 * 8,
-        MESSAGE_CONTROL => 0,
-        READ_DATA_WIDTH_A => 16,
-        READ_LATENCY_A => 0,
-        READ_RESET_VALUE_A => "0",
-        USE_MEM_INIT => 1,
-        WAKEUP_TIME => "disable_sleep"
+        READ_DATA_WIDTH => 16
     )
     port map (
-        clka => clk,
-        rsta => rst,
-        addra => rom_addr,
-        douta => rom_dout,
-        ena => '1',
-        
-        -- Unused ECC and sleep mode stuff
-        dbiterra => open,
-        sbiterra => open,
-        injectdbiterra => '0',
-        injectsbiterra => '0',
-        regcea => '1',
-        sleep => '0'
-     );
-    
+        clk => clk,
+        rst => rst,
+        addr => rom_addr,
+        dout => rom_dout
+    );
+
     -- xpm_memory_dpdistram: Dual Port Distributed RAM
     -- Xilinx Parametrized Macro, version 2017.4
     xpm_memory_dpdistram_inst : xpm_memory_dpdistram

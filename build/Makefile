@@ -6,7 +6,7 @@ PNRPACKAGE = CABGA381
 all: $(PROJ).config $(PROJ).bit
 
 %.json: ../hdl/*.vhd
-	yosys -p 'ghdl $^ -e $(PROJ); synth_ecp5 -json $@'
+	yosys -p 'ghdl --std=08 $^ -e $(PROJ); synth_ecp5 -json $@'
 
 %.config: $(PIN_DEF) %.json
 	nextpnr-ecp5 --$(PNRDEVICE) --package $(PNRPACKAGE) --json $(PROJ).json --textcfg $@ --lpf $(PIN_DEF) -q --timing-allow-fail
