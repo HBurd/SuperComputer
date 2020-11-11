@@ -61,44 +61,81 @@ end mmu;
 
 architecture Behavioral of mmu is
 
-type dport_addr_type_t is (dport_rom, dport_ram, dport_cbuf, dport_in1, dport_out1, dport_in2, dport_out2, dport_invalid);
+    component sprom
+        Generic(
+          ADDR_WIDTH : natural := 16;
+          MEMORY_INIT_FILE : string := "none";
+          MEMORY_SIZE : natural := 16*2048;
+          READ_DATA_WIDTH : natural := 16
+        );
+        Port ( 
+          clk : in std_logic;
+          rst : in std_logic;
+          addr : in std_logic_vector(ADDR_WIDTH-1 downto 0);
+          dout : out std_logic_vector(READ_DATA_WIDTH-1 downto 0)
+        );
+    end component;
 
-signal dport_addr_type : dport_addr_type_t;
+    component dpram
+        Generic(
+          ADDR_WIDTH : natural := 16;
+          MEMORY_SIZE : natural := 16*2048;
+          READ_DATA_WIDTH : natural := 16
+        );
+        Port ( 
+          clk : in std_logic;
+          rst : in std_logic;
 
--- rom read port
-signal rom_addr : std_logic_vector (15 downto 0);
-signal rom_dout : std_logic_vector (15 downto 0);
+          -- rw port
+          rw_addr : in std_logic_vector(ADDR_WIDTH-1 downto 0);
+          rw_dout : out std_logic_vector(READ_DATA_WIDTH-1 downto 0);
+          rw_din : in std_logic_vector(READ_DATA_WIDTH-1 downto 0);
+          rw_we : in std_logic;
 
--- ram R/W port
-signal ram_rw_addr : std_logic_vector (15 downto 0);
-signal ram_rw_wea : std_logic_vector (0 downto 0);
-signal ram_rw_din : std_logic_vector(15 downto 0);
-signal ram_rw_dout : std_logic_vector (15 downto 0);
+          -- r port
+          r_addr : in std_logic_vector(ADDR_WIDTH-1 downto 0);
+          r_dout : out std_logic_vector(READ_DATA_WIDTH-1 downto 0)
+        );
+    end component;
 
--- ram read port
-signal ram_r_addr : std_logic_vector (15 downto 0);
-signal ram_r_dout : std_logic_vector (15 downto 0);
+    type dport_addr_type_t is (dport_rom, dport_ram, dport_cbuf, dport_in1, dport_out1, dport_in2, dport_out2, dport_invalid);
 
--- character buffer R/W port
-signal cbuf_rw_addr : std_logic_vector (15 downto 0);
-signal cbuf_rw_wea : std_logic_vector (0 downto 0);
-signal cbuf_rw_din : std_logic_vector(15 downto 0);
-signal cbuf_rw_dout : std_logic_vector (15 downto 0);
+    signal dport_addr_type : dport_addr_type_t;
 
-signal char_word_addr: unsigned(12 downto 0);
-signal selected_char_wide : std_logic_vector(15 downto 0);
+    -- rom read port
+    signal rom_addr : std_logic_vector (15 downto 0);
+    signal rom_dout : std_logic_vector (15 downto 0);
 
--- word-rounded addresses
-signal rounded_iaddr : std_logic_vector (15 downto 0);
-signal rounded_daddr : std_logic_vector (15 downto 0);
+    -- ram R/W port
+    signal ram_rw_addr : std_logic_vector (15 downto 0);
+    signal ram_rw_wea : std_logic;
+    signal ram_rw_din : std_logic_vector(15 downto 0);
+    signal ram_rw_dout : std_logic_vector (15 downto 0);
 
-signal latched_out1_data : std_logic_vector(15 downto 0);
-signal latched_out2_data : std_logic_vector(15 downto 0);
+    -- ram read port
+    signal ram_r_addr : std_logic_vector (15 downto 0);
+    signal ram_r_dout : std_logic_vector (15 downto 0);
 
--- error signals
-signal daddr_rom_read_error : std_logic;
-signal daddr_out_of_range_error : std_logic;
-signal iaddr_out_of_range_error : std_logic;
+    -- character buffer R/W port
+    signal cbuf_rw_addr : std_logic_vector (15 downto 0);
+    signal cbuf_rw_wea : std_logic_vector (0 downto 0);
+    signal cbuf_rw_din : std_logic_vector(15 downto 0);
+    signal cbuf_rw_dout : std_logic_vector (15 downto 0);
+
+    signal char_word_addr: unsigned(12 downto 0);
+    signal selected_char_wide : std_logic_vector(15 downto 0);
+
+    -- word-rounded addresses
+    signal rounded_iaddr : std_logic_vector (15 downto 0);
+    signal rounded_daddr : std_logic_vector (15 downto 0);
+
+    signal latched_out1_data : std_logic_vector(15 downto 0);
+    signal latched_out2_data : std_logic_vector(15 downto 0);
+
+    -- error signals
+    signal daddr_rom_read_error : std_logic;
+    signal daddr_out_of_range_error : std_logic;
+    signal iaddr_out_of_range_error : std_logic;
 
 begin
     -- round byte-scale CPU addresses to 16-bit word addresses
@@ -139,7 +176,7 @@ begin
     io2_out <= latched_out2_data;
 
     ram_rw_din <= dwrite;
-    ram_rw_wea(0) <= '1' when (dwen = '1') and (dport_addr_type = dport_ram) else '0';
+    ram_rw_wea <= '1' when (dwen = '1') and (dport_addr_type = dport_ram) else '0';
 
     cbuf_rw_din <= dwrite;
     cbuf_rw_wea(0) <= '1' when (dwen = '1') and (dport_addr_type = dport_cbuf) else '0';
@@ -179,94 +216,115 @@ begin
         dout => rom_dout
     );
 
-    -- xpm_memory_dpdistram: Dual Port Distributed RAM
-    -- Xilinx Parametrized Macro, version 2017.4
-    xpm_memory_dpdistram_inst : xpm_memory_dpdistram
-        generic map(
-            MEMORY_SIZE => 1024 * 8,
-            CLOCKING_MODE => "common_clock",
-            MEMORY_INIT_FILE => RAM_INIT_FILE,
-            MEMORY_INIT_PARAM => "",
-            USE_MEM_INIT => 1,
-            MESSAGE_CONTROL => 0,
-            USE_EMBEDDED_CONSTRAINT => 0,
-            MEMORY_OPTIMIZATION => "true",
-            
-            WRITE_DATA_WIDTH_A => 16,
-            READ_DATA_WIDTH_A => 16,
-            BYTE_WRITE_WIDTH_A => 16,
-            ADDR_WIDTH_A => 16,
-            READ_RESET_VALUE_A => "0",
-            READ_LATENCY_A => 0,
-            
-            READ_DATA_WIDTH_B => 16,
-            ADDR_WIDTH_B => 16,
-            READ_RESET_VALUE_B => "0",
-            READ_LATENCY_B => 0
-        )
-        port map (
-            -- rw port
-            clka => clk,
-            rsta => rst,
-            ena => '1',
-            regcea => '1',
-            wea => ram_rw_wea,
-            addra => ram_rw_addr,
-            dina => ram_rw_din,
-            douta => ram_rw_dout,
-            
-            -- read-only port
-            clkb => clk,
-            rstb => rst,
-            enb => '1',
-            regceb => '1',
-            addrb => ram_r_addr,
-            doutb => ram_r_dout
-        );
+    dpram_inst: dpram
+    generic map (
+        ADDR_WIDTH => 16,
+        MEMORY_SIZE => 1024 * 8,
+        READ_DATA_WIDTH => 16
+    )
+    port map (
+        clk => clk,
+        rst => rst,
 
-    -- character buffer ram for interacting with the graphics controller
-    char_buffer_ram : xpm_memory_dpdistram
-        generic map(
-            MEMORY_SIZE => 4096 * 8,
-            CLOCKING_MODE => "independent_clock",
-            MEMORY_INIT_FILE => "none",
-            MEMORY_INIT_PARAM => "0",
-            USE_MEM_INIT => 0,
-            MESSAGE_CONTROL => 0,
-            USE_EMBEDDED_CONSTRAINT => 0,
-            MEMORY_OPTIMIZATION => "true",
-            
-            WRITE_DATA_WIDTH_A => 16,
-            READ_DATA_WIDTH_A => 16,
-            BYTE_WRITE_WIDTH_A => 16,
-            ADDR_WIDTH_A => 13,
-            READ_RESET_VALUE_A => "0",
-            READ_LATENCY_A => 1,
-            
-            READ_DATA_WIDTH_B => 16,
-            ADDR_WIDTH_B => 13,
-            READ_RESET_VALUE_B => "0",
-            READ_LATENCY_B => 1
-        )
-        port map (
-            -- rw port
-            clka => clk,
-            rsta => rst,
-            ena => '1',
-            regcea => '1',
-            wea => cbuf_rw_wea,
-            addra => cbuf_rw_addr(12 downto 0),
-            dina => cbuf_rw_din,
-            douta => cbuf_rw_dout,
-            
-            -- read-only port
-            clkb => clk100MHz,
-            rstb => rst,
-            enb => '1',
-            regceb => '1',
-            addrb => std_logic_vector(char_word_addr),
-            doutb => selected_char_wide
-        );
+        -- rw port
+        rw_addr => ram_rw_addr,
+        rw_dout => ram_rw_dout,
+        rw_din => ram_rw_din,
+        rw_we => ram_rw_wea,
+
+        -- r port
+        r_addr => ram_r_addr,
+        r_dout => ram_r_dout
+    );
+
+    ---- xpm_memory_dpdistram: Dual Port Distributed RAM
+    ---- Xilinx Parametrized Macro, version 2017.4
+    --xpm_memory_dpdistram_inst : xpm_memory_dpdistram
+    --    generic map(
+    --        MEMORY_SIZE => 1024 * 8,
+    --        CLOCKING_MODE => "common_clock",
+    --        MEMORY_INIT_FILE => RAM_INIT_FILE,
+    --        MEMORY_INIT_PARAM => "",
+    --        USE_MEM_INIT => 1,
+    --        MESSAGE_CONTROL => 0,
+    --        USE_EMBEDDED_CONSTRAINT => 0,
+    --        MEMORY_OPTIMIZATION => "true",
+    --        
+    --        WRITE_DATA_WIDTH_A => 16,
+    --        READ_DATA_WIDTH_A => 16,
+    --        BYTE_WRITE_WIDTH_A => 16,
+    --        ADDR_WIDTH_A => 16,
+    --        READ_RESET_VALUE_A => "0",
+    --        READ_LATENCY_A => 0,
+    --        
+    --        READ_DATA_WIDTH_B => 16,
+    --        ADDR_WIDTH_B => 16,
+    --        READ_RESET_VALUE_B => "0",
+    --        READ_LATENCY_B => 0
+    --    )
+    --    port map (
+    --        -- rw port
+    --        clka => clk,
+    --        rsta => rst,
+    --        ena => '1',
+    --        regcea => '1',
+    --        wea => ram_rw_wea,
+    --        addra => ram_rw_addr,
+    --        dina => ram_rw_din,
+    --        douta => ram_rw_dout,
+    --        
+    --        -- read-only port
+    --        clkb => clk,
+    --        rstb => rst,
+    --        enb => '1',
+    --        regceb => '1',
+    --        addrb => ram_r_addr,
+    --        doutb => ram_r_dout
+    --    );
+
+    ---- character buffer ram for interacting with the graphics controller
+    --char_buffer_ram : xpm_memory_dpdistram
+    --    generic map(
+    --        MEMORY_SIZE => 4096 * 8,
+    --        CLOCKING_MODE => "independent_clock",
+    --        MEMORY_INIT_FILE => "none",
+    --        MEMORY_INIT_PARAM => "0",
+    --        USE_MEM_INIT => 0,
+    --        MESSAGE_CONTROL => 0,
+    --        USE_EMBEDDED_CONSTRAINT => 0,
+    --        MEMORY_OPTIMIZATION => "true",
+    --        
+    --        WRITE_DATA_WIDTH_A => 16,
+    --        READ_DATA_WIDTH_A => 16,
+    --        BYTE_WRITE_WIDTH_A => 16,
+    --        ADDR_WIDTH_A => 13,
+    --        READ_RESET_VALUE_A => "0",
+    --        READ_LATENCY_A => 1,
+    --        
+    --        READ_DATA_WIDTH_B => 16,
+    --        ADDR_WIDTH_B => 13,
+    --        READ_RESET_VALUE_B => "0",
+    --        READ_LATENCY_B => 1
+    --    )
+    --    port map (
+    --        -- rw port
+    --        clka => clk,
+    --        rsta => rst,
+    --        ena => '1',
+    --        regcea => '1',
+    --        wea => cbuf_rw_wea,
+    --        addra => cbuf_rw_addr(12 downto 0),
+    --        dina => cbuf_rw_din,
+    --        douta => cbuf_rw_dout,
+    --        
+    --        -- read-only port
+    --        clkb => clk100MHz,
+    --        rstb => rst,
+    --        enb => '1',
+    --        regceb => '1',
+    --        addrb => std_logic_vector(char_word_addr),
+    --        doutb => selected_char_wide
+    --    );
 
             
 
