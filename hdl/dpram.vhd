@@ -41,13 +41,19 @@ architecture behavioral of dpram is
 
 begin
 
-    rw_dout <= mem(to_integer(unsigned(rw_addr)));
-    r_dout <= mem(to_integer(unsigned(r_addr)));
-
     process (clk, rst)
     begin
-        if rising_edge(clk) and rw_we = '1' then
-            mem(to_integer(unsigned(rw_addr))) <= rw_din;
+        if rising_edge(clk) then
+            if rst = '1' then
+                rw_dout <= (others => '0');
+                r_dout <= (others => '0');
+            else
+                rw_dout <= mem(to_integer(unsigned(rw_addr)));
+                r_dout <= mem(to_integer(unsigned(r_addr)));
+                if rw_we = '1' then
+                    mem(to_integer(unsigned(rw_addr))) <= rw_din;
+                end if;
+            end if;
         end if;
     end process;
 

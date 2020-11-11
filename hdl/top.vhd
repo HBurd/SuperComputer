@@ -33,7 +33,8 @@ Port (
     --clk : in STD_LOGIC;
     btn : in std_logic_vector(6 downto 0);
     led : out std_logic_vector(7 downto 0);
-    clk_25mHz : in std_logic);
+    clk_25mHz : in std_logic,
+    wifi_gpio0 : out std_logic);
     --clk100MHz : in std_logic;
     --an : out std_logic_vector(3 downto 0);
     --seg : out std_logic_vector(6 downto 0);
@@ -131,6 +132,8 @@ architecture Behavioral of top is
     signal selected_char : unsigned(7 downto 0);
 
 begin
+
+wifi_gpio0 <= '1';
 
 clk <= btn(3);
 
