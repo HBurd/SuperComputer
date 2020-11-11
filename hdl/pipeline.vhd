@@ -200,35 +200,35 @@ iaddr <= program_counter;
 next_program_counter <= std_logic_vector(unsigned(program_counter) + x"0002");
 
 process(clk, rst_ex, rst_ld) begin
-    if rst_ex = '1' then
-        program_counter <= (others => '0');
-    elsif rst_ld = '1' then
-        program_counter <= x"0002";
-    elsif rising_edge(clk) then
-        if (pc_overwrite = '1') then
+    if rising_edge(clk) then
+        if rst_ex = '1' then
+            program_counter <= (others => '0');
+        elsif rst_ld = '1' then
+            program_counter <= x"0002";
+        elsif (pc_overwrite = '1') then
             program_counter <= pc_value;
-        else
-            if (bubble = '1') then
+        elsif (bubble = '1') then
                 program_counter <= program_counter;
-            else
-                program_counter <= next_program_counter;
-            end if;
+        else
+            program_counter <= next_program_counter;
         end if;
     end if;
 end process;
 
 -- n and z flags from the execute stage
 process (clk, rst) begin
-    if rst = '1' then
-        n <= '0';
-        z <= '0';
-        o <= '0';
-        overflow_word <= (others => '0');
-    elsif rising_edge(clk) then
-        n <= n_next;
-        z <= z_next;
-        o <= o_next;
-        overflow_word <= overflow_word_next;
+    if rising_edge(clk) then
+        if rst = '1' then
+            n <= '0';
+            z <= '0';
+            o <= '0';
+            overflow_word <= (others => '0');
+        else
+            n <= n_next;
+            z <= z_next;
+            o <= o_next;
+            overflow_word <= overflow_word_next;
+        end if;
     end if;
 end process;
 
@@ -239,65 +239,67 @@ branch_mispredict <= pc_overwrite; -- assume branches aren't taken
 
 -- process to update latches on clock edge
 process(clk, rst, pc_overwrite) begin
-    if rst = '1' then
-        decode_latch <= (
-            instr => (others => '0'),
-            pc => (others => '0'),
-            next_pc => x"0002");
-        execute_latch <= (
-            opcode => op_nop,
-            data_1 => (others => '0'),
-            data_2 => (others => '0'),
-            next_pc => x"0002",
-            write_idx => (others => '0'),
-            imm_high => '0');
-        memory_latch <= (
-            opcode => op_nop,
-            src => (others => '0'),
-            dest => (others => '0'),
-            write_idx => (others => '0'),
-            execute_output_data => FEEDBACK_RESET);
-        writeback_latch <= (
-            memory_output_data => FEEDBACK_RESET);
-    elsif rising_edge(clk) then
-        if (pc_overwrite = '1') then
+    if rising_edge(clk) then
+        if rst = '1' then
             decode_latch <= (
                 instr => (others => '0'),
-                pc => unsigned(program_counter),
-                next_pc => unsigned(next_program_counter));
-        elsif (bubble = '1') then
-            decode_latch <= decode_latch;
-        else
-            decode_latch <= (
-                instr => iread,
-                pc => unsigned(program_counter),
-                next_pc => unsigned(next_program_counter));
-        end if;
-        if (pc_overwrite = '1' or bubble = '1') then
+                pc => (others => '0'),
+                next_pc => x"0002");
             execute_latch <= (
                 opcode => op_nop,
                 data_1 => (others => '0'),
                 data_2 => (others => '0'),
-                next_pc => decode_latch.next_pc,
+                next_pc => x"0002",
                 write_idx => (others => '0'),
                 imm_high => '0');
+            memory_latch <= (
+                opcode => op_nop,
+                src => (others => '0'),
+                dest => (others => '0'),
+                write_idx => (others => '0'),
+                execute_output_data => FEEDBACK_RESET);
+            writeback_latch <= (
+                memory_output_data => FEEDBACK_RESET);
         else
-            execute_latch <= (
-                opcode => decode_opcode,
-                data_1 => decode_data_1,
-                data_2 => decode_data_2,
-                next_pc => decode_latch.next_pc,
-                write_idx => write_idx,
-                imm_high => imm_high);
+            if (pc_overwrite = '1') then
+                decode_latch <= (
+                    instr => (others => '0'),
+                    pc => unsigned(program_counter),
+                    next_pc => unsigned(next_program_counter));
+            elsif (bubble = '1') then
+                decode_latch <= decode_latch;
+            else
+                decode_latch <= (
+                    instr => iread,
+                    pc => unsigned(program_counter),
+                    next_pc => unsigned(next_program_counter));
+            end if;
+            if (pc_overwrite = '1' or bubble = '1') then
+                execute_latch <= (
+                    opcode => op_nop,
+                    data_1 => (others => '0'),
+                    data_2 => (others => '0'),
+                    next_pc => decode_latch.next_pc,
+                    write_idx => (others => '0'),
+                    imm_high => '0');
+            else
+                execute_latch <= (
+                    opcode => decode_opcode,
+                    data_1 => decode_data_1,
+                    data_2 => decode_data_2,
+                    next_pc => decode_latch.next_pc,
+                    write_idx => write_idx,
+                    imm_high => imm_high);
+            end if;
+            memory_latch <= (
+                opcode => execute_latch.opcode,
+                src => execute_latch.data_1,
+                dest => execute_latch.data_2,
+                write_idx => execute_latch.write_idx,
+                execute_output_data => ex_fb);
+            writeback_latch <= (
+                memory_output_data => mem_fb);
         end if;
-        memory_latch <= (
-            opcode => execute_latch.opcode,
-            src => execute_latch.data_1,
-            dest => execute_latch.data_2,
-            write_idx => execute_latch.write_idx,
-            execute_output_data => ex_fb);
-        writeback_latch <= (
-            memory_output_data => mem_fb);
     end if;
 end process;
 

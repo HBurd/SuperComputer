@@ -33,9 +33,8 @@ Port (
     --clk : in STD_LOGIC;
     btn : in std_logic_vector(6 downto 0);
     led : out std_logic_vector(7 downto 0);
-    clk_25mHz : in std_logic;
+    clk_25mhz : in std_logic;
     wifi_gpio0 : out std_logic);
-    --clk100MHz : in std_logic;
     --an : out std_logic_vector(3 downto 0);
     --seg : out std_logic_vector(6 downto 0);
     --io1_in: in std_logic_vector(15 downto 0);
@@ -143,7 +142,7 @@ rst_ld <= btn(2);
 io1_in(2 downto 0) <= btn(6 downto 4);
 io1_in(15 downto 3) <= (others => '0');
 io2_in <= (others => '0');
-led <= io1_out(7 downto 0);
+led <= io2_out(7 downto 0);
 
 rst <= '1' when rst_ex = '1' or rst_ld = '1' else '0';
 

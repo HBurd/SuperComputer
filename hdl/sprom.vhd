@@ -42,7 +42,7 @@ architecture behavioral of sprom is
                 exit when endfile(f);
                 readline(f, cur);
                 hread(cur, word);
-                result(i) := std_logic_vector(resize(unsigned(word), READ_DATA_WIDTH));
+                result(i) := word;
             end loop;
         end if;
 
